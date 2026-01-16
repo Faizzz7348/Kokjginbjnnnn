@@ -50,6 +50,37 @@ export default function FlexibleScrollDemo() {
         }
     }, [globalFilter, customers]);
 
+    const onRowEditComplete = (e) => {
+        let _customers = [...customers];
+        let { newData, index } = e;
+        _customers[index] = newData;
+        setCustomers(_customers);
+    };
+
+    const textEditor = (options) => {
+        return <InputText type="text" value={options.value} onChange={(e) => options.editorCallback(e.target.value)} />;
+    };
+
+    const countryEditor = (options) => {
+        return <InputText type="text" value={options.value?.name || options.value} onChange={(e) => {
+            if (typeof options.value === 'object') {
+                options.editorCallback({ ...options.value, name: e.target.value });
+            } else {
+                options.editorCallback(e.target.value);
+            }
+        }} />;
+    };
+
+    const representativeEditor = (options) => {
+        return <InputText type="text" value={options.value?.name || options.value} onChange={(e) => {
+            if (typeof options.value === 'object') {
+                options.editorCallback({ ...options.value, name: e.target.value });
+            } else {
+                options.editorCallback(e.target.value);
+            }
+        }} />;
+    };
+
     const toggleFullscreen = () => {
         setIsMaximized(!isMaximized);
     };
@@ -58,6 +89,32 @@ export default function FlexibleScrollDemo() {
         setTempVisibleColumns([...visibleColumns]);
         setCustomizeModalVisible(true);
     };
+
+    useEffect(() => {
+        if (menuOpen) {
+            document.body.classList.add('menu-open');
+            // Add blur to dialog content
+            const dialogContent = document.querySelector('.p-dialog');
+            if (dialogContent) {
+                dialogContent.classList.add('dialog-blurred');
+            }
+        } else {
+            document.body.classList.remove('menu-open');
+            // Remove blur from dialog content
+            const dialogContent = document.querySelector('.p-dialog');
+            if (dialogContent) {
+                dialogContent.classList.remove('dialog-blurred');
+            }
+        }
+        
+        return () => {
+            document.body.classList.remove('menu-open');
+            const dialogContent = document.querySelector('.p-dialog');
+            if (dialogContent) {
+                dialogContent.classList.remove('dialog-blurred');
+            }
+        };
+    }, [menuOpen]);
 
     const applyColumnCustomization = () => {
         setVisibleColumns(tempVisibleColumns);
@@ -115,6 +172,7 @@ export default function FlexibleScrollDemo() {
                         model={menuItems}
                         popup
                         ref={menuRef}
+                        onShow={() => setMenuOpen(true)}
                         onHide={() => setMenuOpen(false)}
                         style={{ width: '300px' }}
                     />
@@ -141,11 +199,24 @@ export default function FlexibleScrollDemo() {
                 }} 
                 footer={dialogFooterTemplate}
             >
-                <DataTable value={filteredCustomers} scrollable scrollHeight="flex" tableStyle={{ minWidth: '50rem' }}>
-                    {visibleColumns.includes('name') && <Column field="name" header="Name" headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
-                    {visibleColumns.includes('country.name') && <Column field="country.name" header="Country" headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
-                    {visibleColumns.includes('representative.name') && <Column field="representative.name" header="Representative" headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
-                    {visibleColumns.includes('company') && <Column field="company" header="Company" headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
+                <DataTable 
+                    value={filteredCustomers} 
+                    scrollable 
+                    scrollHeight="flex" 
+                    tableStyle={{ minWidth: '50rem' }}
+                    editMode="row"
+                    dataKey="id"
+                    onRowEditComplete={onRowEditComplete}
+                >
+                    {visibleColumns.includes('name') && <Column field="name" header="Name" editor={textEditor} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
+                    {visibleColumns.includes('country.name') && <Column field="country.name" header="Country" editor={countryEditor} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
+                    {visibleColumns.includes('representative.name') && <Column field="representative.name" header="Representative" editor={representativeEditor} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
+                    {visibleColumns.includes('company') && <Column field="company" header="Company" editor={textEditor} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
+                    <Column 
+                        rowEditor 
+                        headerStyle={{ width: '10%', minWidth: '8rem' }} 
+                        bodyStyle={{ textAlign: 'center' }}
+                    />
                 </DataTable>
             </Dialog>
 

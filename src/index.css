@@ -14,6 +14,33 @@ td {
     text-align: center !important;
 }
 
+/* Main DataTable styling with border radius */
+.p-datatable {
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+.p-datatable .p-datatable-header {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th:first-child {
+    border-top-left-radius: 12px !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th:last-child {
+    border-top-right-radius: 12px !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:last-child > td:first-child {
+    border-bottom-left-radius: 12px !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:last-child > td:last-child {
+    border-bottom-right-radius: 12px !important;
+}
+
 /* Search field fix */
 .p-input-icon-left {
     position: relative;
@@ -109,6 +136,84 @@ td {
     left: 26px;
 }
 
+/* Blur effect for modal and dropdown backdrop */
+.p-dialog-mask {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+.p-component-overlay {
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Dropdown overlay blur */
+.p-dropdown-panel {
+    z-index: 1100 !important;
+}
+
+.p-connected-overlay-enter {
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+}
+
+/* Blur backdrop for dropdown menu */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 9998;
+}
+
+body.menu-open::after {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Blur the dialog when menu is open */
+.p-dialog.dialog-blurred .p-dialog-content,
+.p-dialog.dialog-blurred .p-dialog-header,
+.p-dialog.dialog-blurred .p-dialog-footer {
+    filter: blur(3px);
+    transition: filter 0.3s ease;
+}
+
+.p-menu.p-menu-overlay {
+    z-index: 9999 !important;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+/* Make sure dialog stays below menu backdrop */
+.p-dialog {
+    z-index: 1000 !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+}
+
+.p-dialog .p-dialog-header {
+    border-top-left-radius: 16px !important;
+    border-top-right-radius: 16px !important;
+}
+
+.p-dialog .p-dialog-content {
+    border-bottom-left-radius: 16px !important;
+    border-bottom-right-radius: 16px !important;
+}
+
 /* Hamburger button */
 .hamburger-btn {
     width: 3rem !important;
@@ -162,3 +267,31 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
+/* Sticky Navigation Header */
+.nav-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--surface-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    padding: 1rem 2rem;
+}
+
+.nav-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 100%;
+}
+
+.nav-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
