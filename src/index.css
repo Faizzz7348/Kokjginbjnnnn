@@ -71,6 +71,33 @@ td {
     color: #dc2626 !important;
 }
 
+/* Row Editor Button Styling */
+/* Cancel button - Red */
+.p-row-editor-cancel {
+    color: #ef4444 !important;
+}
+
+.p-row-editor-cancel:hover {
+    color: #dc2626 !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Save button - Grey when disabled (no changes) */
+.p-row-editor-init,
+.p-row-editor-save {
+    color: #6b7280 !important;
+}
+
+/* Save button - Green when enabled (has changes) */
+.p-row-editor-save:not(.p-disabled) {
+    color: #22c55e !important;
+}
+
+.p-row-editor-save:not(.p-disabled):hover {
+    color: #16a34a !important;
+    background: rgba(34, 197, 94, 0.1) !important;
+}
+
 /* Column Customize List */
 .column-customize-list {
     display: flex;
@@ -167,12 +194,12 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 9998;
 }
 
@@ -181,12 +208,90 @@ body.menu-open::after {
     pointer-events: auto;
 }
 
-/* Blur the dialog when menu is open */
-.p-dialog.dialog-blurred .p-dialog-content,
-.p-dialog.dialog-blurred .p-dialog-header,
-.p-dialog.dialog-blurred .p-dialog-footer {
-    filter: blur(3px);
+/* Blur the main content when menu is open */
+body.menu-open .App {
+    filter: blur(2px);
     transition: filter 0.3s ease;
+}
+
+body.menu-open .nav-header {
+    filter: none !important;
+}
+
+/* Flex Table Menu Styling */
+.p-menu.flex-table-menu.p-menu-overlay {
+    z-index: 9999 !important;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    background: var(--surface-card) !important;
+    padding: 0 !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.p-menu.flex-table-menu .p-menu-list {
+    padding: 0.75rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+}
+
+.p-menu.flex-table-menu .p-menuitem {
+    border-radius: 10px !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid transparent !important;
+    overflow: hidden !important;
+}
+
+.p-menu.flex-table-menu .p-menuitem-link {
+    padding: 1rem 1.25rem !important;
+    border-radius: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    transition: all 0.2s ease !important;
+    background: var(--surface-ground) !important;
+}
+
+.p-menu.flex-table-menu .p-menuitem-link:hover {
+    background: var(--surface-hover) !important;
+    transform: translateX(4px) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.p-menu.flex-table-menu .p-menuitem-icon {
+    font-size: 1.25rem !important;
+    color: var(--primary-color) !important;
+}
+
+.p-menu.flex-table-menu .p-menuitem-text {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    flex: 1 !important;
+}
+
+.p-menu.flex-table-menu .p-menu-separator {
+    margin: 0.25rem 0.5rem !important;
+    border-top: 1px solid var(--surface-border) !important;
+    background: none !important;
+}
+
+/* Add subtle animation on menu open */
+.p-menu.flex-table-menu.p-menu-overlay {
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .p-menu.p-menu-overlay {
@@ -295,3 +400,7 @@ body {
     color: var(--text-color);
 }
 
+/* Fix dropdown overlay in dialog */
+.p-dropdown-panel {
+    z-index: 9999 !important;
+}

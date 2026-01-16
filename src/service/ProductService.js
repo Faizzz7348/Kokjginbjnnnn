@@ -10,7 +10,8 @@ export const ProductService = {
                 price: 65,
                 category: 'Accessories',
                 quantity: 24,
-                inventoryStatus: 'INSTOCK',
+                location: 'Warehouse A',
+                inventoryStatus: 'Daily',
                 rating: 5
             },
             {
@@ -22,7 +23,8 @@ export const ProductService = {
                 price: 72,
                 category: 'Accessories',
                 quantity: 61,
-                inventoryStatus: 'INSTOCK',
+                location: 'Warehouse B',
+                inventoryStatus: 'Weekday',
                 rating: 4
             },
             {
@@ -34,7 +36,8 @@ export const ProductService = {
                 price: 79,
                 category: 'Fitness',
                 quantity: 2,
-                inventoryStatus: 'LOWSTOCK',
+                location: 'Store 1',
+                inventoryStatus: 'Alt 1',
                 rating: 3
             },
             {
@@ -46,7 +49,8 @@ export const ProductService = {
                 price: 29,
                 category: 'Clothing',
                 quantity: 25,
-                inventoryStatus: 'INSTOCK',
+                location: 'Warehouse A',
+                inventoryStatus: 'Daily',
                 rating: 5
             },
             {
@@ -58,7 +62,8 @@ export const ProductService = {
                 price: 15,
                 category: 'Accessories',
                 quantity: 73,
-                inventoryStatus: 'INSTOCK',
+                location: 'Store 2',
+                inventoryStatus: 'Weekday',
                 rating: 4
             },
             {
@@ -70,7 +75,8 @@ export const ProductService = {
                 price: 120,
                 category: 'Accessories',
                 quantity: 0,
-                inventoryStatus: 'OUTOFSTOCK',
+                location: 'Warehouse B',
+                inventoryStatus: 'Alt 2',
                 rating: 4
             },
             {
@@ -82,7 +88,8 @@ export const ProductService = {
                 price: 32,
                 category: 'Accessories',
                 quantity: 5,
-                inventoryStatus: 'LOWSTOCK',
+                location: 'Store 1',
+                inventoryStatus: 'Alt 1',
                 rating: 3
             },
             {
@@ -94,7 +101,8 @@ export const ProductService = {
                 price: 34,
                 category: 'Accessories',
                 quantity: 23,
-                inventoryStatus: 'INSTOCK',
+                location: 'Warehouse A',
+                inventoryStatus: 'Daily',
                 rating: 5
             },
             {
@@ -106,7 +114,8 @@ export const ProductService = {
                 price: 99,
                 category: 'Electronics',
                 quantity: 2,
-                inventoryStatus: 'LOWSTOCK',
+                location: 'Store 2',
+                inventoryStatus: 'Alt 1',
                 rating: 4
             },
             {
@@ -118,7 +127,8 @@ export const ProductService = {
                 price: 299,
                 category: 'Electronics',
                 quantity: 63,
-                inventoryStatus: 'INSTOCK',
+                location: 'Warehouse B',
+                inventoryStatus: 'Weekday',
                 rating: 3
             }
         ]);

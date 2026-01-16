@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import FlexibleScrollDemo from './FlexibleScrollDemo';
 import RowEditingDemo from './RowEditingDemo';
-import EditableFlexTable from './EditableFlexTable';
 import { Button } from 'primereact/button';
-import { Divider } from 'primereact/divider';
 import { Menu } from 'primereact/menu';
 
 // Import PrimeReact CSS
@@ -44,6 +41,42 @@ function App() {
         loadTheme(newTheme);
     };
 
+    // Toggle body class for backdrop blur
+    useEffect(() => {
+        if (menuOpen) {
+            document.body.classList.add('menu-open');
+        } else {
+            document.body.classList.remove('menu-open');
+        }
+        return () => document.body.classList.remove('menu-open');
+    }, [menuOpen]);
+
+    // Click outside to close menu
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuOpen) {
+                const menuElement = menuRef.current?.getElement();
+                const hamburgerBtn = document.querySelector('.nav-header .hamburger-btn');
+                
+                if (menuElement && !menuElement.contains(event.target) && 
+                    hamburgerBtn && !hamburgerBtn.contains(event.target)) {
+                    menuRef.current?.hide();
+                }
+            }
+        };
+
+        if (menuOpen) {
+            // Add delay to avoid immediate trigger
+            setTimeout(() => {
+                document.addEventListener('click', handleClickOutside);
+            }, 100);
+        }
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [menuOpen]);
+
     const menuItems = [
         {
             label: 'Add Row',
@@ -83,7 +116,8 @@ function App() {
                         ref={menuRef}
                         onShow={() => setMenuOpen(true)}
                         onHide={() => setMenuOpen(false)}
-                        style={{ width: '300px' }}
+                        className="flex-table-menu"
+                        style={{ width: '350px' }}
                         appendTo={document.body}
                     />
                 </div>
@@ -92,10 +126,6 @@ function App() {
             
             <RowEditingDemo onAddRowRegister={setAddRowCallback} />
             
-            <Divider />
-            
-            <h2>Flexible Scroll Dialog</h2>
-            <FlexibleScrollDemo />
             </div>
         </>
     );

@@ -16,12 +16,13 @@ export default function RowEditingDemo({ onAddRowRegister }) {
     const [products, setProducts] = useState(null);
     const [statuses] = useState(['AM', 'PM']);
     const [showFlexTableModal, setShowFlexTableModal] = useState(false);
+    const [editingRows, setEditingRows] = useState({});
     
     // Flex Table Modal States
     const [modalProducts, setModalProducts] = useState([]);
     const [filteredModalProducts, setFilteredModalProducts] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
-    const [visibleColumns, setVisibleColumns] = useState(['name', 'category', 'quantity', 'price']);
+    const [visibleColumns, setVisibleColumns] = useState(['code', 'location', 'inventoryStatus']);
     const [customizeModalVisible, setCustomizeModalVisible] = useState(false);
     const [tempVisibleColumns, setTempVisibleColumns] = useState([]);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
@@ -29,11 +30,9 @@ export default function RowEditingDemo({ onAddRowRegister }) {
     const menuRef = React.useRef(null);
 
     const allColumns = [
-        { field: 'name', header: 'Name' },
-        { field: 'category', header: 'Category' },
-        { field: 'quantity', header: 'Quantity' },
-        { field: 'price', header: 'Price' },
-        { field: 'inventoryStatus', header: 'Status' }
+        { field: 'code', header: 'Code' },
+        { field: 'location', header: 'Location' },
+        { field: 'inventoryStatus', header: 'Delivery' }
     ];
 
     useEffect(() => {
@@ -52,8 +51,8 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         } else {
             const filtered = modalProducts.filter((product) => {
                 return (
-                    product.name?.toLowerCase().includes(globalFilter.toLowerCase()) ||
-                    product.category?.toLowerCase().includes(globalFilter.toLowerCase()) ||
+                    product.code?.toLowerCase().includes(globalFilter.toLowerCase()) ||
+                    product.location?.toLowerCase().includes(globalFilter.toLowerCase()) ||
                     product.inventoryStatus?.toLowerCase().includes(globalFilter.toLowerCase())
                 );
             });
@@ -85,17 +84,48 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         };
     }, [menuOpen]);
 
+    // Click outside to close menu
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuOpen) {
+                const menuElement = menuRef.current?.getElement();
+                const hamburgerBtn = document.querySelector('.p-dialog-header .hamburger-btn');
+                
+                if (menuElement && !menuElement.contains(event.target) && 
+                    hamburgerBtn && !hamburgerBtn.contains(event.target)) {
+                    menuRef.current?.hide();
+                }
+            }
+        };
+
+        if (menuOpen) {
+            // Add delay to avoid immediate trigger
+            setTimeout(() => {
+                document.addEventListener('click', handleClickOutside);
+            }, 100);
+        }
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [menuOpen]);
+
     const getSeverity = (value) => {
         switch (value) {
+            case 'Daily':
+                return 'success';
+            case 'Weekday':
+                return 'info';
+            case 'Alt 1':
+                return 'warning';
+            case 'Alt 2':
+                return 'danger';
             case 'AM':
                 return 'success';
-
             case 'PM':
                 return 'warning';
-
             case 'NIGHT':
                 return 'info';
-
             default:
                 return null;
         }
@@ -114,16 +144,31 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         return <InputText type="text" value={options.value} onChange={(e) => options.editorCallback(e.target.value)} />;
     };
 
-    const statusEditor = (options) => {
+    const shiftEditor = (options) => {
         return (
             <Dropdown
                 value={options.value}
                 options={statuses}
                 onChange={(e) => options.editorCallback(e.value)}
-                placeholder="Select a Status"
+                placeholder="Select Shift"
+                appendTo={document.body}
                 itemTemplate={(option) => {
                     return <Tag value={option} severity={getSeverity(option)}></Tag>;
                 }}
+            />
+        );
+    };
+
+    const deliveryEditor = (options) => {
+        const deliveryStatuses = ['Daily', 'Weekday', 'Alt 1', 'Alt 2'];
+        return (
+            <Dropdown
+                value={options.value}
+                options={deliveryStatuses}
+                onChange={(e) => options.editorCallback(e.value)}
+                placeholder="Select Delivery"
+                appendTo={document.body}
+                panelStyle={{ zIndex: 9999 }}
             />
         );
     };
@@ -221,12 +266,10 @@ export default function RowEditingDemo({ onAddRowRegister }) {
 
     const getColumnEditor = (field) => {
         switch (field) {
-            case 'price':
-                return priceEditor;
-            case 'quantity':
-                return (options) => <InputNumber value={options.value} onValueChange={(e) => options.editorCallback(e.value)} />;
             case 'inventoryStatus':
-                return statusEditor;
+                return deliveryEditor;
+            case 'code':
+            case 'location':
             default:
                 return textEditor;
         }
@@ -234,8 +277,6 @@ export default function RowEditingDemo({ onAddRowRegister }) {
 
     const getColumnBody = (field) => {
         switch (field) {
-            case 'price':
-                return priceBodyTemplate;
             case 'inventoryStatus':
                 return statusBodyTemplate;
             default:
@@ -277,7 +318,8 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                         ref={menuRef}
                         onShow={() => setMenuOpen(true)}
                         onHide={() => setMenuOpen(false)}
-                        style={{ width: '300px' }}
+                        className="flex-table-menu"
+                        style={{ width: '350px' }}
                         appendTo={document.body}
                     />
                 </div>
@@ -300,8 +342,20 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                     tooltip="Open Flex Table"
                     tooltipOptions={{ position: 'bottom' }}
                 />
+            </div>
+        );
+    };
+
+    const deleteButtonTemplate = (rowData) => {
+        const isEditing = editingRows[rowData.id] !== undefined;
+        
+        if (!isEditing) return null;
+        
+        return (
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
                 <Button
                     icon="pi pi-trash"
+                    rounded
                     text
                     severity="danger"
                     onClick={() => confirmDelete(rowData)}
@@ -316,11 +370,12 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         <div className="card p-fluid">
             <ConfirmDialog />
             <div className="table-wrapper">
-                <DataTable value={products} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} tableStyle={{ minWidth: '50rem' }} scrollable scrollHeight="600px">
+                <DataTable value={products} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} editingRows={editingRows} onRowEditChange={(e) => setEditingRows(e.data)} tableStyle={{ minWidth: '50rem' }} scrollable scrollHeight="600px">
                 <Column field="code" header="Route" editor={(options) => textEditor(options)} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column field="name" header="Warehouse" editor={(options) => textEditor(options)} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={(options) => statusEditor(options)} style={{ width: '20%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={(options) => shiftEditor(options)} style={{ width: '20%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column header="Action" body={actionBodyTemplate} exportable={false} style={{ width: '10%', minWidth: '8rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column body={deleteButtonTemplate} exportable={false} style={{ width: '5%', minWidth: '4rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column rowEditor={allowEdit} header="Editable" headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
             </DataTable>
             </div>
@@ -349,6 +404,13 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                     dataKey="id"
                     onRowEditComplete={onModalRowEditComplete}
                 >
+                    <Column
+                        header="No"
+                        body={(data, options) => options.rowIndex + 1}
+                        style={{ width: '5%' }}
+                        headerStyle={{ textAlign: 'center' }}
+                        bodyStyle={{ textAlign: 'center' }}
+                    />
                     {allColumns
                         .filter(col => visibleColumns.includes(col.field))
                         .map((col) => (
@@ -364,8 +426,17 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                         ))
                     }
                     <Column
+                        header="Action"
+                        body={actionBodyTemplate}
+                        exportable={false}
+                        style={{ width: '10%', minWidth: '8rem' }}
+                        headerStyle={{ textAlign: 'center' }}
+                        bodyStyle={{ textAlign: 'center' }}
+                    />
+                    <Column
+                        header="Editable"
                         rowEditor
-                        headerStyle={{ width: '10%', minWidth: '8rem' }}
+                        headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }}
                         bodyStyle={{ textAlign: 'center' }}
                     />
                 </DataTable>
