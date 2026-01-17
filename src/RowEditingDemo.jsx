@@ -9,14 +9,35 @@ import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Menu } from 'primereact/menu';
+import { Card } from 'primereact/card';
+import { Badge } from 'primereact/badge';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { ProductService } from './service/ProductService';
 
-export default function RowEditingDemo({ onAddRowRegister }) {
+// Fix for default marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveRegister }) {
     const [products, setProducts] = useState(null);
+    const [savedProducts, setSavedProducts] = useState(null);
+    const [preSavedRows, setPreSavedRows] = useState({});
+    const [modalPreSavedRows, setModalPreSavedRows] = useState({}); // Format: { mainRowId: { modalRowId: true } }
+    const [rowModalData, setRowModalData] = useState({});
+    const [rowChangesCounts, setRowChangesCounts] = useState({});
+    const [currentModalChanges, setCurrentModalChanges] = useState(0);
+    const [dataVersion, setDataVersion] = useState(0);
     const [statuses] = useState(['AM', 'PM']);
     const [showFlexTableModal, setShowFlexTableModal] = useState(false);
     const [editingRows, setEditingRows] = useState({});
+    const [modalEditingRows, setModalEditingRows] = useState({});
     
     // Flex Table Modal States
     const [modalProducts, setModalProducts] = useState([]);
@@ -26,7 +47,9 @@ export default function RowEditingDemo({ onAddRowRegister }) {
     const [customizeModalVisible, setCustomizeModalVisible] = useState(false);
     const [tempVisibleColumns, setTempVisibleColumns] = useState([]);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
-    const [menuOpen, setMenuOpen] = useState(false);
+    const [selectedRow, setSelectedRow] = useState(null);
+    const [showInfoModal, setShowInfoModal] = useState(false);
+    const [selectedInfoRow, setSelectedInfoRow] = useState(null);
     const menuRef = React.useRef(null);
 
     const allColumns = [
@@ -46,6 +69,12 @@ export default function RowEditingDemo({ onAddRowRegister }) {
     }, [onAddRowRegister, products]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
+        if (onSaveRegister) {
+            onSaveRegister(() => saveAll);
+        }
+    }, [onSaveRegister, products]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
         if (globalFilter === '') {
             setFilteredModalProducts(modalProducts);
         } else {
@@ -60,55 +89,7 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         }
     }, [globalFilter, modalProducts]);
 
-    useEffect(() => {
-        if (menuOpen) {
-            document.body.classList.add('menu-open');
-            const dialogContent = document.querySelector('.p-dialog');
-            if (dialogContent) {
-                dialogContent.classList.add('dialog-blurred');
-            }
-        } else {
-            document.body.classList.remove('menu-open');
-            const dialogContent = document.querySelector('.p-dialog');
-            if (dialogContent) {
-                dialogContent.classList.remove('dialog-blurred');
-            }
-        }
-        
-        return () => {
-            document.body.classList.remove('menu-open');
-            const dialogContent = document.querySelector('.p-dialog');
-            if (dialogContent) {
-                dialogContent.classList.remove('dialog-blurred');
-            }
-        };
-    }, [menuOpen]);
 
-    // Click outside to close menu
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuOpen) {
-                const menuElement = menuRef.current?.getElement();
-                const hamburgerBtn = document.querySelector('.p-dialog-header .hamburger-btn');
-                
-                if (menuElement && !menuElement.contains(event.target) && 
-                    hamburgerBtn && !hamburgerBtn.contains(event.target)) {
-                    menuRef.current?.hide();
-                }
-            }
-        };
-
-        if (menuOpen) {
-            // Add delay to avoid immediate trigger
-            setTimeout(() => {
-                document.addEventListener('click', handleClickOutside);
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
-    }, [menuOpen]);
 
     const getSeverity = (value) => {
         switch (value) {
@@ -136,8 +117,13 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         let { newData, index } = e;
 
         _products[index] = newData;
-
         setProducts(_products);
+        
+        // Mark row as pre-saved (modified but not finally saved)
+        setPreSavedRows(prev => ({
+            ...prev,
+            [newData.id]: true
+        }));
     };
 
     const textEditor = (options) => {
@@ -189,6 +175,26 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         return rowData.name !== 'Blue Band';
     };
 
+    const saveAll = () => {
+        // Save current products state
+        setSavedProducts([...products]);
+        // Clear all editing rows
+        setEditingRows({});
+        setModalEditingRows({});
+        // Clear pre-saved markers
+        setPreSavedRows({});
+        setModalPreSavedRows({});
+        // Clear badge counts
+        setRowChangesCounts({});
+        // Save modal data permanently
+        console.log('Saving all data:', {
+            mainTable: products,
+            modalData: rowModalData
+        });
+        // You can add API call here to save to backend
+        alert('All changes saved successfully!');
+    };
+
     const addRow = () => {
         const newRow = {
             id: Math.max(...(products || []).map(p => p.id || 0)) + 1,
@@ -215,12 +221,46 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         });
     };
 
-    const onOpenFlexTableModal = () => {
-        // Load products for modal
-        ProductService.getProductsMini().then((data) => {
-            setModalProducts(data);
-            setFilteredModalProducts(data);
+    const confirmModalDelete = (rowData) => {
+        confirmDialog({
+            message: 'Are you sure you want to delete this row?',
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'p-button-danger',
+            accept: () => {
+                const _products = modalProducts.filter(p => p.id !== rowData.id);
+                setModalProducts(_products);
+                setFilteredModalProducts(_products);
+            }
         });
+    };
+
+    const onOpenFlexTableModal = (rowData) => {
+        // Store selected row data
+        setSelectedRow(rowData);
+        // Reset current modal changes counter
+        setCurrentModalChanges(0);
+        
+        // Check if this row already has modal data saved
+        if (rowModalData[rowData.id]) {
+            // Load existing modal data for this row
+            setModalProducts(rowModalData[rowData.id]);
+            setFilteredModalProducts(rowModalData[rowData.id]);
+        } else {
+            // Load products for modal and filter based on selected row
+            ProductService.getProductsMini().then((data) => {
+                // Filter data based on the selected row's code
+                const filteredData = data.filter((product) => {
+                    if (rowData.code && product.category) {
+                        return product.category.toLowerCase().includes(rowData.code.charAt(0).toLowerCase());
+                    }
+                    return true;
+                });
+                
+                setModalProducts(filteredData);
+                setFilteredModalProducts(filteredData);
+            });
+        }
         setShowFlexTableModal(true);
     };
 
@@ -229,6 +269,20 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         let { newData, index } = e;
         _products[index] = newData;
         setModalProducts(_products);
+        
+        // Mark modal row as pre-saved for this specific main row
+        if (selectedRow) {
+            setModalPreSavedRows(prev => ({
+                ...prev,
+                [selectedRow.id]: {
+                    ...(prev[selectedRow.id] || {}),
+                    [newData.id]: true
+                }
+            }));
+        }
+        
+        // Increment temporary counter for current modal session
+        setCurrentModalChanges(prev => prev + 1);
     };
 
     const openCustomizeModal = () => {
@@ -249,7 +303,26 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         setIsModalMaximized(!isModalMaximized);
     };
 
+    const addModalRow = () => {
+        const newRow = {
+            id: Math.max(...(modalProducts || []).map(p => p.id || 0)) + 1,
+            code: '',
+            location: '',
+            inventoryStatus: 'Daily'
+        };
+        const updatedProducts = [...(modalProducts || []), newRow];
+        setModalProducts(updatedProducts);
+        setFilteredModalProducts(updatedProducts);
+    };
+
     const menuItems = [
+        {
+            label: 'Add Row',
+            icon: 'pi pi-plus',
+            command: addModalRow,
+            disabled: !isEditMode
+        },
+        { separator: true },
         {
             label: 'Column Customize',
             icon: 'pi pi-table',
@@ -287,7 +360,14 @@ export default function RowEditingDemo({ onAddRowRegister }) {
     const modalHeaderTemplate = () => {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <span>Editable Flex Table</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ fontSize: '14px', fontWeight: '500' }}>
+                        Route {selectedRow?.code || ''}
+                    </div>
+                    <div style={{ fontSize: '12px', opacity: '0.6' }}>
+                        {selectedRow?.name || ''} | {selectedRow?.inventoryStatus || ''}
+                    </div>
+                </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <span className="p-input-icon-left">
                         <i className="pi pi-search" />
@@ -299,28 +379,16 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                         />
                     </span>
                     <Button
-                        onClick={(e) => {
-                            setMenuOpen(!menuOpen);
-                            menuRef.current.toggle(e);
-                        }}
-                        className="hamburger-btn p-button-text"
+                        onClick={(e) => menuRef.current.toggle(e)}
+                        icon="pi pi-bars"
+                        className="p-button-text"
                         aria-label="Menu"
-                    >
-                        <div className={`hamburger-icon ${menuOpen ? 'active' : ''}`}>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </Button>
+                    />
                     <Menu
                         model={menuItems}
                         popup
                         ref={menuRef}
-                        onShow={() => setMenuOpen(true)}
-                        onHide={() => setMenuOpen(false)}
-                        className="flex-table-menu"
-                        style={{ width: '350px' }}
-                        appendTo={document.body}
+                        popupAlignment="right"
                     />
                 </div>
             </div>
@@ -332,16 +400,37 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         value: col.field
     }));
 
+    const onOpenInfoModal = (rowData) => {
+        setSelectedInfoRow(rowData);
+        setShowInfoModal(true);
+    };
+
     const actionBodyTemplate = (rowData) => {
+        const changesCount = rowChangesCounts[rowData.id] || 0;
+        
         return (
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                <Button
-                    icon="pi pi-list"
-                    text
-                    onClick={onOpenFlexTableModal}
-                    tooltip="Open Flex Table"
-                    tooltipOptions={{ position: 'bottom' }}
-                />
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', position: 'relative' }}>
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                    <Button
+                        icon="pi pi-list"
+                        text
+                        onClick={() => onOpenFlexTableModal(rowData)}
+                        tooltip="Open Flex Table"
+                        tooltipOptions={{ position: 'bottom' }}
+                    />
+                    {changesCount > 0 && (
+                        <Badge 
+                            value={changesCount} 
+                            severity="warning"
+                            style={{ 
+                                position: 'absolute',
+                                top: '0',
+                                right: '0',
+                                transform: 'translate(50%, -50%)'
+                            }}
+                        />
+                    )}
+                </div>
             </div>
         );
     };
@@ -366,17 +455,62 @@ export default function RowEditingDemo({ onAddRowRegister }) {
         );
     };
 
+    const modalActionBodyTemplate = (rowData) => {
+        return (
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                <Button
+                    icon="pi pi-info-circle"
+                    text
+                    onClick={() => onOpenInfoModal(rowData)}
+                    tooltip="View Info"
+                    tooltipOptions={{ position: 'bottom' }}
+                />
+            </div>
+        );
+    };
+
+    const modalDeleteButtonTemplate = (rowData) => {
+        const isEditing = modalEditingRows[rowData.id] !== undefined;
+        
+        if (!isEditing) return null;
+        
+        return (
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                <Button
+                    icon="pi pi-trash"
+                    rounded
+                    text
+                    severity="danger"
+                    onClick={() => confirmModalDelete(rowData)}
+                    tooltip="Delete"
+                    tooltipOptions={{ position: 'bottom' }}
+                />
+            </div>
+        );
+    };
+
+    const rowClassName = (rowData) => {
+        return preSavedRows[rowData.id] ? 'pre-saved-row' : '';
+    };
+
+    const modalRowClassName = (rowData) => {
+        if (selectedRow && modalPreSavedRows[selectedRow.id]) {
+            return modalPreSavedRows[selectedRow.id][rowData.id] ? 'pre-saved-row' : '';
+        }
+        return '';
+    };
+
     return (
         <div className="card p-fluid">
             <ConfirmDialog />
             <div className="table-wrapper">
-                <DataTable value={products} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} editingRows={editingRows} onRowEditChange={(e) => setEditingRows(e.data)} tableStyle={{ minWidth: '50rem' }} scrollable scrollHeight="600px">
-                <Column field="code" header="Route" editor={(options) => textEditor(options)} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column field="name" header="Warehouse" editor={(options) => textEditor(options)} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={(options) => shiftEditor(options)} style={{ width: '20%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <DataTable key={`table-${dataVersion}`} value={products} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} editingRows={editingRows} onRowEditChange={(e) => setEditingRows(e.data)} tableStyle={{ minWidth: '50rem' }} scrollable scrollHeight="450px" rowClassName={rowClassName}>
+                <Column field="code" header="Route" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column field="name" header="Warehouse" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={isEditMode ? (options) => shiftEditor(options) : null} style={{ width: '20%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column header="Action" body={actionBodyTemplate} exportable={false} style={{ width: '10%', minWidth: '8rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column body={deleteButtonTemplate} exportable={false} style={{ width: '5%', minWidth: '4rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column rowEditor={allowEdit} header="Editable" headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                {isEditMode && <Column rowEditor={allowEdit} header="Editable" headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
             </DataTable>
             </div>
 
@@ -387,13 +521,53 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                 modal
                 closable={false}
                 closeOnEscape={false}
-                contentStyle={isModalMaximized ? { height: 'calc(100vh - 150px)' } : { height: '500px' }}
+                contentStyle={isModalMaximized ? { height: 'calc(100vh - 150px)' } : { height: '350px' }}
                 onHide={() => {
+                    // Save modal data to the specific row before closing
+                    if (selectedRow) {
+                        setRowModalData(prev => ({
+                            ...prev,
+                            [selectedRow.id]: modalProducts
+                        }));
+                        // Update badge count with changes from this session
+                        if (currentModalChanges > 0) {
+                            setRowChangesCounts(prev => ({
+                                ...prev,
+                                [selectedRow.id]: (prev[selectedRow.id] || 0) + currentModalChanges
+                            }));
+                        }
+                    }
                     setShowFlexTableModal(false);
                     setIsModalMaximized(false);
                     setGlobalFilter('');
+                    setCurrentModalChanges(0);
+                    // Clear modal editing rows but keep markers for review
+                    setModalEditingRows({});
+                    // Force table re-render
+                    setDataVersion(v => v + 1);
                 }}
-                footer={<Button label="Ok" icon="pi pi-check" onClick={() => setShowFlexTableModal(false)} />}
+                footer={<Button label="Ok" icon="pi pi-check" onClick={() => {
+                    // Save modal data to the specific row
+                    if (selectedRow) {
+                        setRowModalData(prev => ({
+                            ...prev,
+                            [selectedRow.id]: modalProducts
+                        }));
+                        // Update badge count with changes from this session
+                        if (currentModalChanges > 0) {
+                            setRowChangesCounts(prev => ({
+                                ...prev,
+                                [selectedRow.id]: (prev[selectedRow.id] || 0) + currentModalChanges
+                            }));
+                        }
+                    }
+                    setShowFlexTableModal(false);
+                    setCurrentModalChanges(0);
+                    // Clear modal editing rows but keep markers for review
+                    setModalEditingRows({});
+                    // Force table re-render
+                    setDataVersion(v => v + 1);
+                }} />}
             >
                 <DataTable
                     value={filteredModalProducts}
@@ -403,6 +577,9 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                     editMode="row"
                     dataKey="id"
                     onRowEditComplete={onModalRowEditComplete}
+                    editingRows={modalEditingRows}
+                    onRowEditChange={(e) => setModalEditingRows(e.data)}
+                    rowClassName={modalRowClassName}
                 >
                     <Column
                         header="No"
@@ -418,7 +595,7 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                                 key={col.field}
                                 field={col.field}
                                 header={col.header}
-                                editor={getColumnEditor(col.field)}
+                                editor={isEditMode ? getColumnEditor(col.field) : null}
                                 body={getColumnBody(col.field)}
                                 headerStyle={{ textAlign: 'center' }}
                                 bodyStyle={{ textAlign: 'center' }}
@@ -427,18 +604,27 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                     }
                     <Column
                         header="Action"
-                        body={actionBodyTemplate}
+                        body={modalActionBodyTemplate}
                         exportable={false}
                         style={{ width: '10%', minWidth: '8rem' }}
                         headerStyle={{ textAlign: 'center' }}
                         bodyStyle={{ textAlign: 'center' }}
                     />
-                    <Column
-                        header="Editable"
-                        rowEditor
-                        headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }}
+                    <Column 
+                        body={modalDeleteButtonTemplate} 
+                        exportable={false} 
+                        style={{ width: '5%', minWidth: '4rem' }} 
+                        headerStyle={{ textAlign: 'center' }} 
                         bodyStyle={{ textAlign: 'center' }}
                     />
+                    {isEditMode && (
+                        <Column
+                            header="Editable"
+                            rowEditor
+                            headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }}
+                            bodyStyle={{ textAlign: 'center' }}
+                        />
+                    )}
                 </DataTable>
 
                 <Dialog
@@ -484,6 +670,59 @@ export default function RowEditingDemo({ onAddRowRegister }) {
                         </div>
                     </div>
                 </Dialog>
+            </Dialog>
+
+            {/* Info Modal with Card and Map */}
+            <Dialog
+                header="Location Information"
+                visible={showInfoModal}
+                style={{ width: '50vw' }}
+                modal
+                onHide={() => setShowInfoModal(false)}
+                footer={
+                    <div>
+                        <Button label="Close" icon="pi pi-times" onClick={() => setShowInfoModal(false)} />
+                    </div>
+                }
+            >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <Card 
+                        title={selectedInfoRow?.code || 'Location'} 
+                        style={{ width: '100%' }}
+                    >
+                        {/* Leaflet Map */}
+                        <div style={{ 
+                            width: '100%', 
+                            height: '300px', 
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            marginBottom: '1rem'
+                        }}>
+                            <MapContainer 
+                                center={[3.1390, 101.6869]} 
+                                zoom={13} 
+                                style={{ height: '100%', width: '100%' }}
+                                scrollWheelZoom={false}
+                            >
+                                <TileLayer
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                />
+                                <Marker position={[3.1390, 101.6869]}>
+                                    <Popup>
+                                        {selectedInfoRow?.location || 'Location'}
+                                    </Popup>
+                                </Marker>
+                            </MapContainer>
+                        </div>
+
+                        <div>
+                            <p style={{ marginBottom: '0.5rem' }}><strong>Code:</strong> {selectedInfoRow?.code || 'N/A'}</p>
+                            <p style={{ marginBottom: '0.5rem' }}><strong>Location:</strong> {selectedInfoRow?.location || 'N/A'}</p>
+                            <p style={{ marginBottom: '0.5rem' }}><strong>Delivery:</strong> {selectedInfoRow?.inventoryStatus || 'N/A'}</p>
+                        </div>
+                    </Card>
+                </div>
             </Dialog>
         </div>
     );

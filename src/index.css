@@ -14,6 +14,27 @@ td {
     text-align: center !important;
 }
 
+/* Reduce row height */
+.p-datatable .p-datatable-tbody > tr > td {
+    padding: 0.5rem !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+    padding: 1rem !important;
+}
+
+/* Center text in edit mode */
+.p-datatable .p-inputtext,
+.p-datatable .p-inputnumber-input,
+.p-datatable .p-dropdown {
+    text-align: center !important;
+}
+
+/* Hide dropdown caret icon */
+.p-datatable .p-dropdown .p-dropdown-trigger {
+    display: none !important;
+}
+
 /* Main DataTable styling with border radius */
 .p-datatable {
     border-radius: 12px !important;
@@ -163,205 +184,29 @@ td {
     left: 26px;
 }
 
-/* Blur effect for modal and dropdown backdrop */
-.p-dialog-mask {
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    background-color: rgba(0, 0, 0, 0.4) !important;
-}
-
-.p-component-overlay {
-    backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
-    background-color: rgba(0, 0, 0, 0.3) !important;
-}
-
-/* Dropdown overlay blur */
+/* Simple dropdown styling */
 .p-dropdown-panel {
     z-index: 1100 !important;
 }
 
-.p-connected-overlay-enter {
-    backdrop-filter: blur(5px) !important;
-    -webkit-backdrop-filter: blur(5px) !important;
+/* Menu items single line */
+.p-menu .p-menuitem-link {
+    white-space: nowrap !important;
 }
 
-/* Blur backdrop for dropdown menu */
-body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 9998;
+.p-menu .p-menuitem-text {
+    white-space: nowrap !important;
 }
 
-body.menu-open::after {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Blur the main content when menu is open */
-body.menu-open .App {
-    filter: blur(2px);
-    transition: filter 0.3s ease;
-}
-
-body.menu-open .nav-header {
-    filter: none !important;
-}
-
-/* Flex Table Menu Styling */
-.p-menu.flex-table-menu.p-menu-overlay {
-    z-index: 9999 !important;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    border-radius: 16px !important;
-    overflow: hidden !important;
-    background: var(--surface-card) !important;
-    padding: 0 !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-}
-
-.p-menu.flex-table-menu .p-menu-list {
-    padding: 0.75rem !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-}
-
-.p-menu.flex-table-menu .p-menuitem {
-    border-radius: 10px !important;
-    transition: all 0.2s ease !important;
-    border: 1px solid transparent !important;
-    overflow: hidden !important;
-}
-
-.p-menu.flex-table-menu .p-menuitem-link {
-    padding: 1rem 1.25rem !important;
-    border-radius: 10px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 1rem !important;
-    transition: all 0.2s ease !important;
-    background: var(--surface-ground) !important;
-}
-
-.p-menu.flex-table-menu .p-menuitem-link:hover {
-    background: var(--surface-hover) !important;
-    transform: translateX(4px) !important;
-    border-color: var(--primary-color) !important;
-}
-
-.p-menu.flex-table-menu .p-menuitem-icon {
-    font-size: 1.25rem !important;
-    color: var(--primary-color) !important;
-}
-
-.p-menu.flex-table-menu .p-menuitem-text {
-    font-size: 1rem !important;
-    font-weight: 500 !important;
-    flex: 1 !important;
-}
-
-.p-menu.flex-table-menu .p-menu-separator {
-    margin: 0.25rem 0.5rem !important;
-    border-top: 1px solid var(--surface-border) !important;
-    background: none !important;
-}
-
-/* Add subtle animation on menu open */
-.p-menu.flex-table-menu.p-menu-overlay {
-    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.p-menu.p-menu-overlay {
-    z-index: 9999 !important;
-    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 12px !important;
-    overflow: hidden !important;
-}
-
-/* Make sure dialog stays below menu backdrop */
+/* Dialog styling */
 .p-dialog {
     z-index: 1000 !important;
-    border-radius: 16px !important;
-    overflow: hidden !important;
 }
 
-.p-dialog .p-dialog-header {
-    border-top-left-radius: 16px !important;
-    border-top-right-radius: 16px !important;
-}
-
-.p-dialog .p-dialog-content {
-    border-bottom-left-radius: 16px !important;
-    border-bottom-right-radius: 16px !important;
-}
-
-/* Hamburger button */
+/* Simple hamburger button */
 .hamburger-btn {
     width: 3rem !important;
     height: 3rem !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-}
-
-/* Hamburger icon */
-.hamburger-icon {
-    width: 28px;
-    height: 24px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    cursor: pointer;
-}
-
-.hamburger-icon span {
-    display: block;
-    height: 3px;
-    width: 100%;
-    background-color: currentColor;
-    border-radius: 3px;
-    transition: all 0.3s ease-in-out;
-    position: relative;
-}
-
-/* Hamburger to X animation */
-.hamburger-icon.active span:nth-child(1) {
-    transform: translateY(10.5px) rotate(45deg);
-}
-
-.hamburger-icon.active span:nth-child(2) {
-    opacity: 0;
-    transform: translateX(-20px);
-}
-
-.hamburger-icon.active span:nth-child(3) {
-    transform: translateY(-10.5px) rotate(-45deg);
 }
 
 body {
@@ -403,4 +248,24 @@ body {
 /* Fix dropdown overlay in dialog */
 .p-dropdown-panel {
     z-index: 9999 !important;
+}
+
+/* Map marker bounce animation */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* Pre-saved row marker */
+.p-datatable .p-datatable-tbody > tr.pre-saved-row {
+    background-color: rgba(255, 193, 7, 0.15) !important;
+    border-left: 4px solid #ffc107 !important;
+}
+
+.p-datatable .p-datatable-tbody > tr.pre-saved-row:hover {
+    background-color: rgba(255, 193, 7, 0.25) !important;
 }

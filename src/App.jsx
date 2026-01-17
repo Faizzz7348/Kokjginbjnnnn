@@ -9,13 +9,18 @@ import 'primeicons/primeicons.css';
 
 function App() {
     const [theme, setTheme] = useState('dark');
-    const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = React.useRef(null);
     const [addRowCallback, setAddRowCallback] = useState(null);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [saveCallback, setSaveCallback] = useState(null);
 
     useEffect(() => {
-        // Load initial theme
-        loadTheme(theme);
+        // Load initial theme immediately
+        const link = document.createElement('link');
+        link.id = 'theme-link';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css';
+        document.head.appendChild(link);
     }, []);
 
     const loadTheme = (themeName) => {
@@ -41,51 +46,37 @@ function App() {
         loadTheme(newTheme);
     };
 
-    // Toggle body class for backdrop blur
-    useEffect(() => {
-        if (menuOpen) {
-            document.body.classList.add('menu-open');
-        } else {
-            document.body.classList.remove('menu-open');
+    const toggleEditMode = () => {
+        setIsEditMode(!isEditMode);
+    };
+
+    const handleSaveAll = () => {
+        if (saveCallback) {
+            saveCallback();
         }
-        return () => document.body.classList.remove('menu-open');
-    }, [menuOpen]);
-
-    // Click outside to close menu
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (menuOpen) {
-                const menuElement = menuRef.current?.getElement();
-                const hamburgerBtn = document.querySelector('.nav-header .hamburger-btn');
-                
-                if (menuElement && !menuElement.contains(event.target) && 
-                    hamburgerBtn && !hamburgerBtn.contains(event.target)) {
-                    menuRef.current?.hide();
-                }
-            }
-        };
-
-        if (menuOpen) {
-            // Add delay to avoid immediate trigger
-            setTimeout(() => {
-                document.addEventListener('click', handleClickOutside);
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('click', handleClickOutside);
-        };
-    }, [menuOpen]);
+    };
 
     const menuItems = [
         {
             label: 'Add Row',
             icon: 'pi pi-plus',
-            command: () => addRowCallback && addRowCallback()
+            command: () => addRowCallback && addRowCallback(),
+            disabled: !isEditMode
+        },
+        {
+            label: isEditMode ? 'Exit Edit Mode' : 'Edit Mode',
+            icon: isEditMode ? 'pi pi-times' : 'pi pi-pencil',
+            command: toggleEditMode
+        },
+        {
+            label: 'Save All',
+            icon: 'pi pi-save',
+            command: handleSaveAll,
+            disabled: !isEditMode
         },
         { separator: true },
         {
-            label: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`,
+            label: theme === 'dark' ? 'Light Mode' : 'Dark Mode',
             icon: theme === 'dark' ? 'pi pi-sun' : 'pi pi-moon',
             command: toggleTheme
         }
@@ -97,34 +88,25 @@ function App() {
                 <div className="nav-content">
                     <h1 className="nav-title">DataTable Demo</h1>
                     <Button
-                        onClick={(e) => {
-                            setMenuOpen(!menuOpen);
-                            menuRef.current.toggle(e);
-                        }}
-                        className="hamburger-btn p-button-text"
+                        onClick={(e) => menuRef.current.toggle(e)}
+                        icon="pi pi-bars"
+                        className="p-button-text"
                         aria-label="Menu"
-                    >
-                        <div className={`hamburger-icon ${menuOpen ? 'active' : ''}`}>
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </Button>
+                    />
                     <Menu
                         model={menuItems}
                         popup
                         ref={menuRef}
-                        onShow={() => setMenuOpen(true)}
-                        onHide={() => setMenuOpen(false)}
-                        className="flex-table-menu"
-                        style={{ width: '350px' }}
-                        appendTo={document.body}
                     />
                 </div>
             </nav>
             <div className="App" style={{ paddingTop: '7rem', paddingLeft: '2rem', paddingRight: '2rem', paddingBottom: '2rem' }}>
             
-            <RowEditingDemo onAddRowRegister={setAddRowCallback} />
+            <RowEditingDemo 
+                onAddRowRegister={setAddRowCallback} 
+                isEditMode={isEditMode}
+                onSaveRegister={setSaveCallback}
+            />
             
             </div>
         </>
