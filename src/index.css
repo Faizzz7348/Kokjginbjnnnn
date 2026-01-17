@@ -14,13 +14,13 @@ td {
     text-align: center !important;
 }
 
-/* Reduce row height */
+/* Adjust row height */
 .p-datatable .p-datatable-tbody > tr > td {
-    padding: 0.5rem !important;
+    padding: 0.75rem !important;
 }
 
 .p-datatable .p-datatable-thead > tr > th {
-    padding: 1rem !important;
+    padding: 1.25rem !important;
 }
 
 /* Center text in edit mode */
@@ -268,4 +268,25 @@ body {
 
 .p-datatable .p-datatable-tbody > tr.pre-saved-row:hover {
     background-color: rgba(255, 193, 7, 0.25) !important;
+}
+
+/* Menu item colors */
+.menu-save-all .p-menuitem-text,
+.menu-save-all .p-menuitem-icon {
+    color: #22c55e !important;
+}
+
+.menu-save-all:hover .p-menuitem-text,
+.menu-save-all:hover .p-menuitem-icon {
+    color: #16a34a !important;
+}
+
+.menu-exit-edit-mode .p-menuitem-text,
+.menu-exit-edit-mode .p-menuitem-icon {
+    color: #ef4444 !important;
+}
+
+.menu-exit-edit-mode:hover .p-menuitem-text,
+.menu-exit-edit-mode:hover .p-menuitem-icon {
+    color: #dc2626 !important;
 }

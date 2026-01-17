@@ -25,7 +25,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveRegister }) {
+export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveRegister, onHasChangesRegister, onDiscardChangesRegister }) {
     const [products, setProducts] = useState(null);
     const [savedProducts, setSavedProducts] = useState(null);
     const [preSavedRows, setPreSavedRows] = useState({});
@@ -73,6 +73,25 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             onSaveRegister(() => saveAll);
         }
     }, [onSaveRegister, products]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (onHasChangesRegister) {
+            onHasChangesRegister(() => () => {
+                // Check if there are any unsaved changes
+                const hasPreSavedRows = Object.keys(preSavedRows).length > 0;
+                const hasModalChanges = Object.keys(modalPreSavedRows).some(mainRowId => 
+                    Object.keys(modalPreSavedRows[mainRowId]).length > 0
+                );
+                return hasPreSavedRows || hasModalChanges;
+            });
+        }
+    }, [onHasChangesRegister, preSavedRows, modalPreSavedRows]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (onDiscardChangesRegister) {
+            onDiscardChangesRegister(() => discardChanges);
+        }
+    }, [onDiscardChangesRegister]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (globalFilter === '') {
@@ -193,6 +212,26 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         });
         // You can add API call here to save to backend
         alert('All changes saved successfully!');
+    };
+
+    const discardChanges = () => {
+        // Reload products from saved state or refetch from service
+        if (savedProducts) {
+            setProducts([...savedProducts]);
+        } else {
+            // If no saved state, reload from service
+            ProductService.getProductsMini().then((data) => setProducts(data));
+        }
+        // Clear all editing states
+        setEditingRows({});
+        setModalEditingRows({});
+        // Clear pre-saved markers
+        setPreSavedRows({});
+        setModalPreSavedRows({});
+        // Clear badge counts
+        setRowChangesCounts({});
+        // Clear modal data
+        setRowModalData({});
     };
 
     const addRow = () => {
@@ -502,7 +541,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     return (
         <div className="card p-fluid">
-            <ConfirmDialog />
             <div className="table-wrapper">
                 <DataTable key={`table-${dataVersion}`} value={products} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} editingRows={editingRows} onRowEditChange={(e) => setEditingRows(e.data)} tableStyle={{ minWidth: '50rem' }} scrollable scrollHeight="450px" rowClassName={rowClassName}>
                 <Column field="code" header="Route" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
