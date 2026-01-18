@@ -117,11 +117,20 @@ function App() {
     return (
         <>
             <ConfirmDialog />
+            {isMenuOpen && (
+                <div 
+                    className="menu-backdrop"
+                    onClick={() => {
+                        menuRef.current.hide();
+                        setIsMenuOpen(false);
+                    }}
+                />
+            )}
             <nav className="nav-header">
                 <div className="nav-content">
                     <div className="nav-title-wrapper">
                         <h1 className="nav-title">
-                            {isEditMode ? 'Edit Mode' : 'DataTable Demo'}
+                            {isEditMode ? 'Edit Mode' : 'Vending Machines Route'}
                         </h1>
                         <div className="nav-subtitle">
                             {isEditMode ? 'Make changes and save' : 'PrimeReact | Table Management'}

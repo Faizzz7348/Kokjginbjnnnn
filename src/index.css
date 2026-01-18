@@ -210,6 +210,11 @@ td {
     z-index: 1000 !important;
 }
 
+/* Dialog mask (backdrop for dialogs) */
+.p-dialog-mask {
+    z-index: 999 !important;
+}
+
 /* Simple hamburger button */
 .hamburger-btn {
     width: 3rem !important;
@@ -514,11 +519,54 @@ body {
     border-radius: 12px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
     border: 1px solid var(--surface-border) !important;
-    backdrop-filter: blur(10px);
+    z-index: 1100 !important;
 }
 
 .p-overlaypanel .p-overlaypanel-content {
     padding: 0.75rem !important;
+    background: var(--surface-card) !important;
+}
+
+/* Manual Backdrop for Menu Overlay */
+.menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1099;
+    animation: backdropFadeIn 0.25s ease;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+/* Backdrop for flex table menu inside modal */
+.menu-backdrop-modal {
+    z-index: 1100;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+/* OverlayPanel inside modal needs MUCH higher z-index than backdrop */
+.p-dialog .p-overlaypanel {
+    z-index: 1600 !important;
+}
+
+.p-dialog .p-overlaypanel .p-overlaypanel-content {
+    background: var(--surface-card) !important;
+}
+
+@keyframes backdropFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* Focus styles for buttons inside OverlayPanel */
@@ -590,6 +638,65 @@ body {
     pointer-events: none;
 }
 
+/* Collapsible Address Section */
+.address-collapse-wrapper {
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.address-collapse-btn {
+    width: 100%;
+    padding: 12px 20px;
+    background: var(--surface-ground);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.address-collapse-btn.collapse-bottom {
+    justify-content: center;
+    padding: 8px 20px;
+}
+
+.address-collapse-btn:hover {
+    background: var(--surface-hover);
+}
+
+.address-collapse-btn i {
+    color: var(--primary-color);
+    font-size: 12px;
+}
+
+.address-content {
+    padding: 16px 20px;
+    background: var(--surface-card);
+    animation: slideDown 0.2s ease-out;
+}
+
+.address-text {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-color-secondary);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .info-modal-content {
     padding: 24px;
 }
@@ -611,7 +718,7 @@ body {
 
 .info-title {
     color: var(--text-color);
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     margin: 0;
 }
@@ -745,6 +852,82 @@ body {
 
 .coordinate-separator {
     color: var(--text-color-secondary);
+}
+
+/* Descriptions Section */
+.descriptions-section {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--surface-card);
+    border-radius: 12px;
+    border: 1px solid var(--surface-border);
+}
+
+.descriptions-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.descriptions-title i {
+    color: var(--primary-color);
+    font-size: 16px;
+}
+
+.description-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.description-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.description-item:last-child {
+    border-bottom: none;
+}
+
+.description-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+}
+
+.description-value {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-color);
+    text-align: right;
+}
+
+.description-value.status-active {
+    color: #34c759;
+    font-weight: 600;
+}
+
+.description-input {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    text-align: right !important;
+    padding: 6px 10px !important;
+    border: 1px solid var(--surface-border) !important;
+    border-radius: 6px !important;
+    background: var(--surface-ground) !important;
+    max-width: 300px;
+}
+
+.description-input:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
 }
 
 .quick-actions-section {

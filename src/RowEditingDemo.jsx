@@ -54,6 +54,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [infoModalVisible, setInfoModalVisible] = useState(false);
     const [selectedLocationInfo, setSelectedLocationInfo] = useState(null);
     const [isFlexMenuOpen, setIsFlexMenuOpen] = useState(false);
+    const [isAddressExpanded, setIsAddressExpanded] = useState(false);
     const menuRef = React.useRef(null);
 
     const allColumns = [
@@ -111,6 +112,21 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             setFilteredModalProducts(filtered);
         }
     }, [globalFilter, modalProducts]);
+
+    // Clear all editing states when exiting edit mode
+    useEffect(() => {
+        if (!isEditMode) {
+            setEditingRows({});
+            setModalEditingRows({});
+        }
+    }, [isEditMode]);
+
+    // Reset address expanded state when modal opens
+    useEffect(() => {
+        if (infoModalVisible) {
+            setIsAddressExpanded(false);
+        }
+    }, [infoModalVisible]);
 
     // Function to detect duplicate codes in modal products (including other flex tables)
     const getDuplicateCodes = () => {
@@ -641,7 +657,10 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     menuRef.current.hide();
                                     setIsFlexMenuOpen(false);
                                 }}
-                                style={{ justifyContent: 'flex-start' }}
+                                style={{ 
+                                    justifyContent: 'flex-start',
+                                    color: isModalMaximized ? '#ef4444' : undefined
+                                }}
                             />
                         </div>
                     </OverlayPanel>
@@ -656,17 +675,28 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     }));
 
     const onOpenInfoModal = (rowData) => {
-        // Add mock data for demonstration - you can replace with actual data
+        // Load actual data from rowData - each row has unique info
         const locationData = {
+            id: rowData.id,
             code: rowData.code,
             location: rowData.location || rowData.code,
             inventoryStatus: rowData.inventoryStatus,
-            kilometer: '2.5 Km', // Mock data
-            latitude: '3.1390',  // Mock data
-            longitude: '101.6869' // Mock data
+            address: rowData.address || `No. ${rowData.id * 10 + 23}, Jalan Teknologi ${rowData.id}/4, Taman Sains Selangor ${rowData.id}, Kota Damansara, 47810 Petaling Jaya, Selangor, Malaysia`,
+            operatingHours: rowData.operatingHours || '24/7 Access Available',
+            machineType: rowData.machineType || 'Snack & Beverage Combo',
+            paymentMethods: rowData.paymentMethods || 'Cash, Card, E-Wallet, QR Code',
+            lastMaintenance: rowData.lastMaintenance || `${rowData.id || 2} days ago`,
+            status: rowData.status || 'Active & Operational'
         };
         setSelectedLocationInfo(locationData);
         setInfoModalVisible(true);
+    };
+
+    const updateLocationInfo = (field, value) => {
+        setSelectedLocationInfo(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     const actionBodyTemplate = (rowData) => {
@@ -712,8 +742,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     text
                     severity="danger"
                     onClick={() => confirmDelete(rowData)}
-                    tooltip="Delete"
-                    tooltipOptions={{ position: 'bottom' }}
                 />
             </div>
         );
@@ -726,8 +754,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     icon="pi pi-info-circle"
                     text
                     onClick={() => onOpenInfoModal(rowData)}
-                    tooltip="View Info"
-                    tooltipOptions={{ position: 'bottom' }}
                 />
             </div>
         );
@@ -746,8 +772,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     text
                     severity="danger"
                     onClick={() => confirmModalDelete(rowData)}
-                    tooltip="Delete"
-                    tooltipOptions={{ position: 'bottom' }}
                 />
             </div>
         );
@@ -776,6 +800,16 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     return (
+        <>
+            {isFlexMenuOpen && (
+                <div 
+                    className="menu-backdrop menu-backdrop-modal"
+                    onClick={() => {
+                        menuRef.current.hide();
+                        setIsFlexMenuOpen(false);
+                    }}
+                />
+            )}
         <div className="card p-fluid">
             <div className="table-wrapper">
                 <DataTable key={`table-${dataVersion}`} value={products} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} editingRows={editingRows} onRowEditChange={(e) => setEditingRows(e.data)} tableStyle={{ minWidth: '50rem' }} scrollable scrollHeight="450px" rowClassName={rowClassName}>
@@ -951,7 +985,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             {/* Info Modal with Card and Map - Huijack Style */}
             <Dialog 
                 visible={infoModalVisible}
-                style={{ width: '70vw', maxWidth: '900px' }}
+                style={{ width: '60vw', maxWidth: '700px' }}
                 modal
                 onHide={() => setInfoModalVisible(false)}
                 contentStyle={{ padding: 0, overflow: 'hidden', borderRadius: '16px' }}
@@ -978,13 +1012,40 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             </div>
                         </div>
 
+                        {/* Collapsible Address Section */}
+                        <div className="address-collapse-wrapper">
+                            {!isAddressExpanded ? (
+                                <button 
+                                    className="address-collapse-btn"
+                                    onClick={() => setIsAddressExpanded(true)}
+                                >
+                                    <span>Full Address</span>
+                                    <i className="pi pi-chevron-down"></i>
+                                </button>
+                            ) : (
+                                <>
+                                    <div className="address-content">
+                                        <p className="address-text">
+                                            {selectedLocationInfo.address || 
+                                             'No. 123, Jalan Teknologi 3/4, Taman Sains Selangor 1, Kota Damansara, 47810 Petaling Jaya, Selangor, Malaysia'}
+                                        </p>
+                                    </div>
+                                    <button 
+                                        className="address-collapse-btn collapse-bottom"
+                                        onClick={() => setIsAddressExpanded(false)}
+                                    >
+                                        <i className="pi pi-chevron-up"></i>
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
                         {/* Content */}
                         <div className="info-modal-content">
                             {/* Header Section */}
                             <div className="info-header-section">
                                 <div className="info-title-wrapper">
-                                    <h2 className="info-title">{selectedLocationInfo.location || selectedLocationInfo.code}</h2>
-                                    <span className="info-code-badge">#{selectedLocationInfo.code}</span>
+                                    <h2 className="info-title">{selectedLocationInfo.code} - {selectedLocationInfo.location}</h2>
                                 </div>
                                 <span className={`delivery-type-badge ${(selectedLocationInfo.inventoryStatus || 'standard').toLowerCase()}`}>
                                     <i className="pi pi-truck"></i>
@@ -992,43 +1053,82 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 </span>
                             </div>
 
-                            {/* Info Grid */}
-                            <div className="info-grid-container">
-                                <div className="info-grid-item">
-                                    <div className="info-icon-wrapper distance">
-                                        <i className="pi pi-compass"></i>
-                                    </div>
-                                    <div className="info-text-wrapper">
-                                        <span className="info-label">Distance</span>
-                                        <span className="info-value">{selectedLocationInfo.kilometer || '0.0 Km'}</span>
-                                    </div>
-                                </div>
-
-                                <div className="info-grid-item">
-                                    <div className="info-icon-wrapper delivery">
-                                        <i className="pi pi-send"></i>
-                                    </div>
-                                    <div className="info-text-wrapper">
-                                        <span className="info-label">Delivery Type</span>
-                                        <span className="info-value">{selectedLocationInfo.inventoryStatus || 'Standard'}</span>
-                                    </div>
-                                </div>
-
-                                <div className="info-grid-item full-width">
-                                    <div className="info-icon-wrapper coordinates">
-                                        <i className="pi pi-globe"></i>
-                                    </div>
-                                    <div className="info-text-wrapper">
-                                        <span className="info-label">GPS Coordinates</span>
-                                        <span className="info-value coordinates-value">
-                                            <span className="coordinate-item">
-                                                <i className="pi pi-angle-up"></i> {selectedLocationInfo.latitude || '3.1390'}°
+                            {/* Descriptions Section */}
+                            <div className="descriptions-section">
+                                <h3 className="descriptions-title">
+                                    <i className="pi pi-info-circle"></i>
+                                    Location Information
+                                </h3>
+                                <div className="description-items">
+                                    <div className="description-item">
+                                        <span className="description-label">Operating Hours:</span>
+                                        {isEditMode ? (
+                                            <InputText 
+                                                value={selectedLocationInfo.operatingHours || '24/7 Access Available'}
+                                                onChange={(e) => updateLocationInfo('operatingHours', e.target.value)}
+                                                className="description-input"
+                                            />
+                                        ) : (
+                                            <span className="description-value">
+                                                {selectedLocationInfo.operatingHours || '24/7 Access Available'}
                                             </span>
-                                            <span className="coordinate-separator">•</span>
-                                            <span className="coordinate-item">
-                                                <i className="pi pi-angle-right"></i> {selectedLocationInfo.longitude || '101.6869'}°
+                                        )}
+                                    </div>
+                                    <div className="description-item">
+                                        <span className="description-label">Machine Type:</span>
+                                        {isEditMode ? (
+                                            <InputText 
+                                                value={selectedLocationInfo.machineType || 'Snack & Beverage Combo'}
+                                                onChange={(e) => updateLocationInfo('machineType', e.target.value)}
+                                                className="description-input"
+                                            />
+                                        ) : (
+                                            <span className="description-value">
+                                                {selectedLocationInfo.machineType || 'Snack & Beverage Combo'}
                                             </span>
-                                        </span>
+                                        )}
+                                    </div>
+                                    <div className="description-item">
+                                        <span className="description-label">Payment Methods:</span>
+                                        {isEditMode ? (
+                                            <InputText 
+                                                value={selectedLocationInfo.paymentMethods || 'Cash, Card, E-Wallet, QR Code'}
+                                                onChange={(e) => updateLocationInfo('paymentMethods', e.target.value)}
+                                                className="description-input"
+                                            />
+                                        ) : (
+                                            <span className="description-value">
+                                                {selectedLocationInfo.paymentMethods || 'Cash, Card, E-Wallet, QR Code'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="description-item">
+                                        <span className="description-label">Last Maintenance:</span>
+                                        {isEditMode ? (
+                                            <InputText 
+                                                value={selectedLocationInfo.lastMaintenance || '2 days ago'}
+                                                onChange={(e) => updateLocationInfo('lastMaintenance', e.target.value)}
+                                                className="description-input"
+                                            />
+                                        ) : (
+                                            <span className="description-value">
+                                                {selectedLocationInfo.lastMaintenance || '2 days ago'}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="description-item">
+                                        <span className="description-label">Status:</span>
+                                        {isEditMode ? (
+                                            <InputText 
+                                                value={selectedLocationInfo.status || 'Active & Operational'}
+                                                onChange={(e) => updateLocationInfo('status', e.target.value)}
+                                                className="description-input"
+                                            />
+                                        ) : (
+                                            <span className="description-value status-active">
+                                                {selectedLocationInfo.status || 'Active & Operational'}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -1064,5 +1164,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 )}
             </Dialog>
         </div>
+        </>
     );
 }
