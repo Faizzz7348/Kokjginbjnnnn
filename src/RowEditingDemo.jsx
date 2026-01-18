@@ -53,6 +53,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [selectedInfoRow, setSelectedInfoRow] = useState(null);
     const [infoModalVisible, setInfoModalVisible] = useState(false);
     const [selectedLocationInfo, setSelectedLocationInfo] = useState(null);
+    const [isFlexMenuOpen, setIsFlexMenuOpen] = useState(false);
     const menuRef = React.useRef(null);
 
     const allColumns = [
@@ -585,18 +586,26 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             style={{ width: '250px' }}
                         />
                     </span>
-                    <Button
-                        onClick={(e) => menuRef.current.toggle(e)}
-                        icon="pi pi-bars"
-                        className="p-button-text menu-button-large"
-                        aria-label="Menu"
-                        style={{
-                            fontSize: '1.25rem',
-                            width: '3rem',
-                            height: '3rem'
+                    <button
+                        onClick={(e) => {
+                            menuRef.current.toggle(e);
+                            setIsFlexMenuOpen(!isFlexMenuOpen);
                         }}
-                    />
-                    <OverlayPanel ref={menuRef} appendTo={document.body} style={{ width: '250px' }}>
+                        className="hamburger-button menu-button-large"
+                        aria-label="Menu"
+                    >
+                        <div className={`hamburger-icon ${isFlexMenuOpen ? 'open' : ''}`}>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </button>
+                    <OverlayPanel 
+                        ref={menuRef} 
+                        appendTo={document.body} 
+                        style={{ width: '250px' }}
+                        onHide={() => setIsFlexMenuOpen(false)}
+                    >
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <Button
                                 label="Add Row"
@@ -605,6 +614,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 onClick={() => {
                                     addModalRow();
                                     menuRef.current.hide();
+                                    setIsFlexMenuOpen(false);
                                 }}
                                 disabled={!isEditMode}
                                 style={{ justifyContent: 'flex-start' }}
@@ -617,6 +627,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 onClick={() => {
                                     openCustomizeModal();
                                     menuRef.current.hide();
+                                    setIsFlexMenuOpen(false);
                                 }}
                                 style={{ justifyContent: 'flex-start' }}
                             />
@@ -628,6 +639,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 onClick={() => {
                                     toggleModalMaximize();
                                     menuRef.current.hide();
+                                    setIsFlexMenuOpen(false);
                                 }}
                                 style={{ justifyContent: 'flex-start' }}
                             />

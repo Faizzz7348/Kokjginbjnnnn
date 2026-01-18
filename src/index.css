@@ -225,7 +225,7 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Sticky Navigation Header */
+/* Sticky Navigation Header - Flex Table Style */
 .nav-header {
     position: fixed;
     top: 0;
@@ -233,9 +233,10 @@ body {
     right: 0;
     background: var(--surface-card);
     border-bottom: 1px solid var(--surface-border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
     z-index: 999;
-    padding: 1rem 2rem;
+    padding: 1.25rem 2rem;
 }
 
 .nav-content {
@@ -243,13 +244,29 @@ body {
     align-items: center;
     justify-content: space-between;
     max-width: 100%;
+    gap: 1rem;
+}
+
+.nav-title-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .nav-title {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: var(--text-color);
+    line-height: 1.2;
+}
+
+.nav-subtitle {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-color-secondary);
+    opacity: 0.7;
+    letter-spacing: 0.3px;
 }
 
 /* Fix dropdown overlay in dialog */
@@ -324,12 +341,32 @@ body {
     }
 }
 
-/* Menu button styling */
-.menu-button-large,
-.nav-menu-button {
-    transition: all 0.3s ease !important;
+/* Menu button styling - Match Flex Table */
+.hamburger-button {
+    transition: all 0.2s ease !important;
+    border-radius: 8px !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-color);
 }
 
+.menu-button-large,
+.nav-menu-button {
+    transition: all 0.2s ease !important;
+    border-radius: 8px !important;
+    width: 3rem !important;
+    height: 3rem !important;
+    position: relative;
+}
+
+.hamburger-button:hover,
 .menu-button-large:hover,
 .nav-menu-button:hover {
     background-color: var(--primary-color) !important;
@@ -337,32 +374,118 @@ body {
     transform: scale(1.05);
 }
 
+.hamburger-button:focus,
+.menu-button-large:focus,
+.nav-menu-button:focus,
+.hamburger-button:focus-visible,
+.menu-button-large:focus-visible,
+.nav-menu-button:focus-visible {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2) !important;
+}
+
 .menu-button-large .pi,
 .nav-menu-button .pi {
     font-size: 1.25rem !important;
 }
 
-/* Menu popup styling */
+.hamburger-button:active,
+.menu-button-large:active,
+.nav-menu-button:active {
+    transform: scale(0.95);
+}
+
+/* Animated Hamburger Icon */
+.hamburger-icon {
+    width: 24px;
+    height: 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.hamburger-icon span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background: currentColor;
+    border-radius: 3px;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transform-origin: center;
+}
+
+/* Hamburger to X Animation */
+.hamburger-icon.open span:nth-child(1) {
+    transform: translateY(8.5px) rotate(45deg);
+}
+
+.hamburger-icon.open span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+.hamburger-icon.open span:nth-child(3) {
+    transform: translateY(-8.5px) rotate(-45deg);
+}
+
+/* Hover effect for hamburger */
+.hamburger-button:hover .hamburger-icon span {
+    background: white;
+}
+
+/* Menu popup styling - Flex Table Style */
 .p-menu {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
     border-radius: 12px !important;
     border: 1px solid var(--surface-border) !important;
     z-index: 1001 !important;
+    min-width: 220px !important;
+    backdrop-filter: blur(10px);
+    padding: 0.5rem !important;
+}
+
+.p-menu .p-menuitem {
+    margin-bottom: 4px;
+}
+
+.p-menu .p-menuitem:last-child {
+    margin-bottom: 0;
 }
 
 .p-menu .p-menuitem-link {
-    padding: 0.875rem 1.25rem !important;
+    padding: 0.75rem 1rem !important;
     transition: all 0.2s ease !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .p-menu .p-menuitem-link:hover {
     background: var(--primary-color) !important;
     color: white !important;
+    transform: translateX(4px);
+}
+
+.p-menu .p-menuitem-link:active {
+    transform: translateX(2px) scale(0.98);
 }
 
 .p-menu .p-menuitem-icon {
-    font-size: 1.1rem !important;
+    font-size: 1rem !important;
     margin-right: 0.75rem !important;
+}
+
+.p-menu .p-menuitem-text {
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+}
+
+.p-menu .p-menu-separator {
+    margin: 0.5rem 0.5rem !important;
+    border-top-color: var(--surface-border) !important;
 }
 
 /* Menu item colors */
@@ -384,6 +507,48 @@ body {
 .menu-exit-edit-mode:hover .p-menuitem-text,
 .menu-exit-edit-mode:hover .p-menuitem-icon {
     color: #dc2626 !important;
+}
+
+/* OverlayPanel Styling for Nav Menu */
+.p-overlaypanel {
+    border-radius: 12px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid var(--surface-border) !important;
+    backdrop-filter: blur(10px);
+}
+
+.p-overlaypanel .p-overlaypanel-content {
+    padding: 0.75rem !important;
+}
+
+/* Focus styles for buttons inside OverlayPanel */
+.p-overlaypanel .p-button-text:focus,
+.p-overlaypanel .p-button-text:focus-visible {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: -2px !important;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15) !important;
+    background: rgba(0, 122, 255, 0.05) !important;
+}
+
+.p-overlaypanel .p-button-text:hover {
+    background: var(--surface-hover) !important;
+    transform: translateX(4px);
+    transition: all 0.2s ease;
+}
+
+.p-overlaypanel .p-button-text:active {
+    transform: translateX(2px) scale(0.98);
+}
+
+/* Disabled button in overlay */
+.p-overlaypanel .p-button-text:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+}
+
+.p-overlaypanel .p-button-text:disabled:hover {
+    transform: none !important;
+    background: transparent !important;
 }
 
 /* Info Modal Dialog Styling - Huijack Style */
