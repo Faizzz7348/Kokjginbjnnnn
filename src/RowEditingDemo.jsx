@@ -17,6 +17,14 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { ProductService } from './service/ProductService';
+import LightGallery from 'lightgallery/react';
+import 'lightgallery/css/lightgallery.css';
+import 'lightgallery/css/lg-zoom.css';
+import 'lightgallery/css/lg-thumbnail.css';
+import 'lightgallery/css/lg-fullscreen.css';
+import lgThumbnail from 'lightgallery/plugins/thumbnail';
+import lgZoom from 'lightgallery/plugins/zoom';
+import lgFullscreen from 'lightgallery/plugins/fullscreen';
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -44,7 +52,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [modalProducts, setModalProducts] = useState([]);
     const [filteredModalProducts, setFilteredModalProducts] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
-    const [visibleColumns, setVisibleColumns] = useState(['code', 'location', 'inventoryStatus']);
+    const [visibleColumns, setVisibleColumns] = useState(['code', 'location', 'inventoryStatus', 'images']);
     const [customizeModalVisible, setCustomizeModalVisible] = useState(false);
     const [tempVisibleColumns, setTempVisibleColumns] = useState([]);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
@@ -57,6 +65,12 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [isAddressExpanded, setIsAddressExpanded] = useState(false);
     const [pinnedRows, setPinnedRows] = useState(new Set());
     const menuRef = React.useRef(null);
+    const lightGalleryRef = React.useRef(null);
+    const [galleryItems, setGalleryItems] = useState([]);
+    const [selectedRowForImage, setSelectedRowForImage] = useState(null);
+    const [imageUploadDialogVisible, setImageUploadDialogVisible] = useState(false);
+    const [imageUrlInput, setImageUrlInput] = useState('');
+    const [imageCaptionInput, setImageCaptionInput] = useState('');
 
     // Memoize sorted products to prevent infinite re-renders
     const sortedProducts = useMemo(() => {
@@ -73,7 +87,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const allColumns = [
         { field: 'code', header: 'Code' },
         { field: 'location', header: 'Location' },
-        { field: 'inventoryStatus', header: 'Delivery' }
+        { field: 'inventoryStatus', header: 'Delivery' },
+        { field: 'images', header: 'Images' }
     ];
 
     useEffect(() => {
@@ -567,6 +582,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 return statusBodyTemplate;
             case 'code':
                 return codeBodyTemplate;
+            case 'images':
+                return imageBodyTemplate;
             default:
                 return null;
         }
@@ -592,6 +609,307 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         }
         
         return rowData.code;
+    };
+
+    // Image Body Template untuk display images
+    const imageBodyTemplate = (rowData) => {
+        const images = rowData.images || [];
+        
+        if (!images || images.length === 0) {
+            return (
+                <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    position: 'relative'
+                }}>
+                    <div style={{ 
+                        position: 'relative',
+                        display: 'inline-block'
+                    }}>
+                        <div style={{ 
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '80px',
+                            height: '40px',
+                            borderRadius: '0.5rem',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            position: 'relative',
+                            cursor: isEditMode ? 'pointer' : 'default'
+                        }}>
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                gap: '2px'
+                            }}>
+                                <i className="pi pi-image" style={{ 
+                                    fontSize: '1rem', 
+                                    color: '#94a3b8',
+                                    opacity: 0.5
+                                }}></i>
+                                <span style={{ 
+                                    fontSize: '0.65rem', 
+                                    color: '#94a3b8',
+                                    fontWeight: '500'
+                                }}>
+                                    No Image
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {/* Pencil icon - show in edit mode */}
+                        {isEditMode && (
+                            <div
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    openImageUpload(rowData);
+                                }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '-6px',
+                                    right: '-6px',
+                                    width: '20px',
+                                    height: '20px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#2196f3',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    transition: 'all 0.2s',
+                                    zIndex: 10
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#1976d2';
+                                    e.currentTarget.style.transform = 'scale(1.15)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#2196f3';
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                }}
+                                title="Add Images"
+                            >
+                                <i className="pi pi-pencil" style={{ fontSize: '0.65rem', color: 'white' }}></i>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Convert string array to proper image format
+        const imageArray = images.map(img => 
+            typeof img === 'string' ? { url: img, caption: '' } : img
+        );
+
+        return (
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center',
+                position: 'relative'
+            }}>
+                <div 
+                    style={{ 
+                        position: 'relative',
+                        display: 'inline-block'
+                    }}
+                >
+                    <div
+                        onClick={() => openLightbox(imageArray, 0)}
+                        style={{ 
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '0.5rem',
+                            backgroundColor: '#e3f2fd',
+                            border: '1px solid #90caf9',
+                            transition: 'all 0.2s',
+                            position: 'relative'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#bbdefb';
+                            e.currentTarget.style.transform = 'scale(1.05)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = '#e3f2fd';
+                            e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                    >
+                        {imageArray.length > 0 && (
+                            <img 
+                                src={imageArray[0].url} 
+                                alt={imageArray[0].caption || 'Preview'}
+                                style={{ 
+                                    width: '32px', 
+                                    height: '32px', 
+                                    objectFit: 'cover', 
+                                    borderRadius: '0.375rem',
+                                    border: '2px solid white'
+                                }}
+                            />
+                        )}
+                        <span style={{ 
+                            fontSize: '0.875rem', 
+                            fontWeight: '500',
+                            color: '#1976d2'
+                        }}>
+                            {imageArray.length}
+                        </span>
+                        <i className="pi pi-images" style={{ fontSize: '0.875rem', color: '#1976d2' }}></i>
+                        
+                        {/* Pencil icon - hanya muncul dalam edit mode, positioned on preview */}
+                        {isEditMode && (
+                            <div
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent lightbox from opening
+                                    openImageUpload(rowData);
+                                }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '-6px',
+                                    right: '-6px',
+                                    width: '20px',
+                                    height: '20px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#2196f3',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                    transition: 'all 0.2s',
+                                    zIndex: 10
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#1976d2';
+                                    e.currentTarget.style.transform = 'scale(1.15)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#2196f3';
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                }}
+                                title="Manage Images"
+                            >
+                                <i className="pi pi-pencil" style={{ fontSize: '0.65rem', color: 'white' }}></i>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Open Lightbox untuk view images
+    const openLightbox = (images, index) => {
+        const items = images.map(img => ({
+            src: img.url,
+            thumb: img.url,
+            subHtml: `<h4>${img.caption || ''}</h4>${img.description ? `<p>${img.description}</p>` : ''}`
+        }));
+        setGalleryItems(items);
+        
+        // Trigger lightgallery to open
+        setTimeout(() => {
+            if (lightGalleryRef.current) {
+                lightGalleryRef.current.openGallery(index);
+            }
+        }, 100);
+    };
+
+    // Open Image Upload Dialog
+    const openImageUpload = (rowData) => {
+        setSelectedRowForImage(rowData);
+        setImageUrlInput('');
+        setImageCaptionInput('');
+        setImageUploadDialogVisible(true);
+    };
+
+    // Add Image to Row
+    const addImageToRow = () => {
+        if (!imageUrlInput.trim()) {
+            alert('Please enter an image URL');
+            return;
+        }
+
+        const _products = modalProducts.map(p => {
+            if (p.id === selectedRowForImage.id) {
+                const currentImages = p.images || [];
+                const newImage = {
+                    url: imageUrlInput.trim(),
+                    caption: imageCaptionInput.trim() || '',
+                    description: ''
+                };
+                return {
+                    ...p,
+                    images: [...currentImages, newImage]
+                };
+            }
+            return p;
+        });
+
+        setModalProducts(_products);
+        setFilteredModalProducts(_products);
+        
+        // Mark as pre-saved
+        if (selectedRow) {
+            setModalPreSavedRows(prev => ({
+                ...prev,
+                [selectedRow.id]: {
+                    ...(prev[selectedRow.id] || {}),
+                    [selectedRowForImage.id]: true
+                }
+            }));
+        }
+        
+        setCurrentModalChanges(prev => prev + 1);
+        setImageUploadDialogVisible(false);
+        setImageUrlInput('');
+        setImageCaptionInput('');
+    };
+
+    // Delete Image from Row
+    const deleteImageFromRow = (rowData, imageIndex) => {
+        confirmDialog({
+            message: 'Are you sure you want to delete this image?',
+            header: 'Delete Confirmation',
+            icon: 'pi pi-exclamation-triangle',
+            acceptClassName: 'p-button-danger',
+            accept: () => {
+                const _products = modalProducts.map(p => {
+                    if (p.id === rowData.id) {
+                        const currentImages = p.images || [];
+                        return {
+                            ...p,
+                            images: currentImages.filter((_, idx) => idx !== imageIndex)
+                        };
+                    }
+                    return p;
+                });
+
+                setModalProducts(_products);
+                setFilteredModalProducts(_products);
+                
+                // Mark as pre-saved
+                if (selectedRow) {
+                    setModalPreSavedRows(prev => ({
+                        ...prev,
+                        [selectedRow.id]: {
+                            ...(prev[selectedRow.id] || {}),
+                            [rowData.id]: true
+                        }
+                    }));
+                }
+                
+                setCurrentModalChanges(prev => prev + 1);
+            }
+        });
     };
 
     const modalHeaderTemplate = () => {
@@ -1254,6 +1572,175 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     </div>
                 )}
             </Dialog>
+
+            {/* Image Upload Dialog */}
+            <Dialog
+                header={`${selectedRowForImage?.images?.length > 0 ? 'Manage' : 'Add'} Images - ${selectedRowForImage?.code || ''}`}
+                visible={imageUploadDialogVisible}
+                style={{ width: '600px' }}
+                modal
+                onHide={() => setImageUploadDialogVisible(false)}
+            >
+                {selectedRowForImage && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                        {/* Current Images Grid */}
+                        {selectedRowForImage.images && selectedRowForImage.images.length > 0 && (
+                            <div>
+                                <h4 style={{ marginBottom: '1rem', color: 'var(--text-color)' }}>Current Images ({selectedRowForImage.images.length})</h4>
+                                <div style={{ 
+                                    display: 'grid', 
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                    gap: '1rem'
+                                }}>
+                                    {selectedRowForImage.images.map((img, idx) => {
+                                        const imageObj = typeof img === 'string' ? { url: img, caption: '' } : img;
+                                        return (
+                                            <div 
+                                                key={idx}
+                                                style={{
+                                                    position: 'relative',
+                                                    borderRadius: '0.5rem',
+                                                    overflow: 'hidden',
+                                                    border: '2px solid var(--surface-border)',
+                                                    backgroundColor: 'var(--surface-card)'
+                                                }}
+                                            >
+                                                <img 
+                                                    src={imageObj.url}
+                                                    alt={imageObj.caption || `Image ${idx + 1}`}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '120px',
+                                                        objectFit: 'cover',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onClick={() => {
+                                                        const images = selectedRowForImage.images.map(i => 
+                                                            typeof i === 'string' ? { url: i, caption: '' } : i
+                                                        );
+                                                        openLightbox(images, idx);
+                                                    }}
+                                                />
+                                                {imageObj.caption && (
+                                                    <div style={{
+                                                        padding: '0.25rem 0.5rem',
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                                        color: 'white',
+                                                        fontSize: '0.75rem',
+                                                        whiteSpace: 'nowrap',
+                                                        overflow: 'hidden',
+                                                        textOverflow: 'ellipsis'
+                                                    }}>
+                                                        {imageObj.caption}
+                                                    </div>
+                                                )}
+                                                {isEditMode && (
+                                                    <Button
+                                                        icon="pi pi-trash"
+                                                        rounded
+                                                        text
+                                                        severity="danger"
+                                                        style={{
+                                                            position: 'absolute',
+                                                            top: '0.25rem',
+                                                            right: '0.25rem',
+                                                            width: '2rem',
+                                                            height: '2rem',
+                                                            backgroundColor: 'rgba(255, 255, 255, 0.9)'
+                                                        }}
+                                                        onClick={() => deleteImageFromRow(selectedRowForImage, idx)}
+                                                    />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Add New Image Form */}
+                        {isEditMode && (
+                            <div style={{ paddingTop: selectedRowForImage.images?.length > 0 ? '1rem' : '0', borderTop: selectedRowForImage.images?.length > 0 ? '1px solid var(--surface-border)' : 'none' }}>
+                                <h4 style={{ marginBottom: '1rem', color: 'var(--text-color)' }}>Add New Image</h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                                            Image URL <span style={{ color: '#ef4444' }}>*</span>
+                                        </label>
+                                        <InputText
+                                            value={imageUrlInput}
+                                            onChange={(e) => setImageUrlInput(e.target.value)}
+                                            placeholder="https://example.com/image.jpg"
+                                            style={{ width: '100%' }}
+                                        />
+                                        <small style={{ color: 'var(--text-color-secondary)' }}>
+                                            Enter a direct link to an image (jpg, png, gif, webp)
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+                                            Caption (Optional)
+                                        </label>
+                                        <InputText
+                                            value={imageCaptionInput}
+                                            onChange={(e) => setImageCaptionInput(e.target.value)}
+                                            placeholder="Enter image caption..."
+                                            style={{ width: '100%' }}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                        <Button
+                                            label="Cancel"
+                                            icon="pi pi-times"
+                                            onClick={() => {
+                                                setImageUrlInput('');
+                                                setImageCaptionInput('');
+                                            }}
+                                            className="p-button-text"
+                                        />
+                                        <Button
+                                            label="Add Image"
+                                            icon="pi pi-plus"
+                                            onClick={addImageToRow}
+                                            disabled={!imageUrlInput.trim()}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Dialog>
+
+            {/* Lightbox for viewing images */}
+            <div style={{ display: 'none' }}>
+                <LightGallery
+                    onInit={(detail) => {
+                        lightGalleryRef.current = detail.instance;
+                    }}
+                    speed={500}
+                    plugins={[lgThumbnail, lgZoom, lgFullscreen]}
+                    dynamic={true}
+                    dynamicEl={galleryItems}
+                    closable={true}
+                    showCloseIcon={true}
+                    showMaximizeIcon={true}
+                    counter={true}
+                    download={false}
+                    zoom={true}
+                    thumbnail={true}
+                    animateThumb={true}
+                    zoomFromOrigin={false}
+                    allowMediaOverlap={true}
+                    toggleThumb={true}
+                    thumbWidth={100}
+                    thumbHeight={80}
+                    thumbMargin={5}
+                    exThumbImage="data-exthumbimage"
+                    mode="lg-fade"
+                    backdropDuration={300}
+                />
+            </div>
         </div>
         </>
     );

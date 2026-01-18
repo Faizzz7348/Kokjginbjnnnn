@@ -12,7 +12,11 @@ export const ProductService = {
                 quantity: 24,
                 location: 'Warehouse A',
                 inventoryStatus: 'Daily',
-                rating: 5
+                rating: 5,
+                images: [
+                    { url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', caption: 'Product View 1' },
+                    { url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', caption: 'Product View 2' }
+                ]
             },
             {
                 id: '1001',
@@ -25,7 +29,10 @@ export const ProductService = {
                 quantity: 61,
                 location: 'Warehouse B',
                 inventoryStatus: 'Weekday',
-                rating: 4
+                rating: 4,
+                images: [
+                    { url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', caption: 'Warehouse View' }
+                ]
             },
             {
                 id: '1002',
@@ -38,7 +45,8 @@ export const ProductService = {
                 quantity: 2,
                 location: 'Store 1',
                 inventoryStatus: 'Alt 1',
-                rating: 3
+                rating: 3,
+                images: []
             },
             {
                 id: '1003',
