@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext';
@@ -55,7 +55,20 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [selectedLocationInfo, setSelectedLocationInfo] = useState(null);
     const [isFlexMenuOpen, setIsFlexMenuOpen] = useState(false);
     const [isAddressExpanded, setIsAddressExpanded] = useState(false);
+    const [pinnedRows, setPinnedRows] = useState(new Set());
     const menuRef = React.useRef(null);
+
+    // Memoize sorted products to prevent infinite re-renders
+    const sortedProducts = useMemo(() => {
+        if (!products) return null;
+        return [...products].sort((a, b) => {
+            const aIsPinned = pinnedRows.has(a.id);
+            const bIsPinned = pinnedRows.has(b.id);
+            if (aIsPinned && !bIsPinned) return -1;
+            if (!aIsPinned && bIsPinned) return 1;
+            return 0;
+        });
+    }, [products, pinnedRows]);
 
     const allColumns = [
         { field: 'code', header: 'Code' },
@@ -682,6 +695,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             location: rowData.location || rowData.code,
             inventoryStatus: rowData.inventoryStatus,
             address: rowData.address || `No. ${rowData.id * 10 + 23}, Jalan Teknologi ${rowData.id}/4, Taman Sains Selangor ${rowData.id}, Kota Damansara, 47810 Petaling Jaya, Selangor, Malaysia`,
+            latitude: rowData.latitude || (3.1390 + (rowData.id * 0.001)).toFixed(4),
+            longitude: rowData.longitude || (101.6869 + (rowData.id * 0.001)).toFixed(4),
             operatingHours: rowData.operatingHours || '24/7 Access Available',
             machineType: rowData.machineType || 'Snack & Beverage Combo',
             paymentMethods: rowData.paymentMethods || 'Cash, Card, E-Wallet, QR Code',
@@ -699,11 +714,32 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         }));
     };
 
+    const togglePin = (rowData) => {
+        setPinnedRows(prev => {
+            const newPinned = new Set(prev);
+            if (newPinned.has(rowData.id)) {
+                newPinned.delete(rowData.id);
+            } else {
+                newPinned.add(rowData.id);
+            }
+            return newPinned;
+        });
+    };
+
     const actionBodyTemplate = (rowData) => {
         const changesCount = rowChangesCounts[rowData.id] || 0;
+        const isPinned = pinnedRows.has(rowData.id);
         
         return (
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', position: 'relative' }}>
+                <Button
+                    icon={isPinned ? 'pi pi-bookmark-fill' : 'pi pi-bookmark'}
+                    rounded
+                    text
+                    severity={isPinned ? 'info' : undefined}
+                    onClick={() => togglePin(rowData)}
+                    className={isPinned ? 'pin-button-active' : 'pin-button'}
+                />
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                     <Button
                         icon="pi pi-list"
@@ -778,6 +814,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const rowClassName = (rowData) => {
+        if (pinnedRows.has(rowData.id)) {
+            return 'pinned-row';
+        }
         return preSavedRows[rowData.id] ? 'pre-saved-row' : '';
     };
 
@@ -812,7 +851,19 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             )}
         <div className="card p-fluid">
             <div className="table-wrapper">
-                <DataTable key={`table-${dataVersion}`} value={products} editMode="row" dataKey="id" onRowEditComplete={onRowEditComplete} editingRows={editingRows} onRowEditChange={(e) => setEditingRows(e.data)} tableStyle={{ minWidth: '50rem' }} scrollable scrollHeight="450px" rowClassName={rowClassName}>
+                <DataTable 
+                    key={`table-${dataVersion}`} 
+                    value={sortedProducts} 
+                    editMode="row" 
+                    dataKey="id" 
+                    onRowEditComplete={onRowEditComplete} 
+                    editingRows={editingRows} 
+                    onRowEditChange={(e) => setEditingRows(e.data)} 
+                    tableStyle={{ minWidth: '50rem' }} 
+                    scrollable 
+                    scrollHeight="450px" 
+                    rowClassName={rowClassName}
+                >
                 <Column field="code" header="Route" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column field="name" header="Warehouse" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={isEditMode ? (options) => shiftEditor(options) : null} style={{ width: '20%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
@@ -1012,6 +1063,36 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             </div>
                         </div>
 
+                        {/* GPS Coordinates Section - Only in Edit Mode */}
+                        {isEditMode && (
+                            <div className="gps-coordinates-section">
+                                <div className="gps-label">
+                                    <i className="pi pi-map-marker"></i>
+                                    <span>GPS Coordinates</span>
+                                </div>
+                                <div className="gps-inputs">
+                                    <div className="gps-input-group">
+                                        <label>Latitude</label>
+                                        <InputText
+                                            value={selectedLocationInfo.latitude || '3.1390'}
+                                            onChange={(e) => updateLocationInfo('latitude', e.target.value)}
+                                            className="gps-input"
+                                            placeholder="3.1390"
+                                        />
+                                    </div>
+                                    <div className="gps-input-group">
+                                        <label>Longitude</label>
+                                        <InputText
+                                            value={selectedLocationInfo.longitude || '101.6869'}
+                                            onChange={(e) => updateLocationInfo('longitude', e.target.value)}
+                                            className="gps-input"
+                                            placeholder="101.6869"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Collapsible Address Section */}
                         <div className="address-collapse-wrapper">
                             {!isAddressExpanded ? (
@@ -1025,10 +1106,20 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             ) : (
                                 <>
                                     <div className="address-content">
-                                        <p className="address-text">
-                                            {selectedLocationInfo.address || 
-                                             'No. 123, Jalan Teknologi 3/4, Taman Sains Selangor 1, Kota Damansara, 47810 Petaling Jaya, Selangor, Malaysia'}
-                                        </p>
+                                        {isEditMode ? (
+                                            <textarea
+                                                value={selectedLocationInfo.address || 'No. 123, Jalan Teknologi 3/4, Taman Sains Selangor 1, Kota Damansara, 47810 Petaling Jaya, Selangor, Malaysia'}
+                                                onChange={(e) => updateLocationInfo('address', e.target.value)}
+                                                className="address-textarea"
+                                                rows={3}
+                                                placeholder="Enter full address"
+                                            />
+                                        ) : (
+                                            <p className="address-text">
+                                                {selectedLocationInfo.address || 
+                                                 'No. 123, Jalan Teknologi 3/4, Taman Sains Selangor 1, Kota Damansara, 47810 Petaling Jaya, Selangor, Malaysia'}
+                                            </p>
+                                        )}
                                     </div>
                                     <button 
                                         className="address-collapse-btn collapse-bottom"

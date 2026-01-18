@@ -346,6 +346,51 @@ body {
     }
 }
 
+/* Pinned row styling */
+.p-datatable .p-datatable-tbody > tr.pinned-row {
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.08) 0%, rgba(14, 165, 233, 0.03) 100%) !important;
+    border-left: 4px solid #0ea5e9 !important;
+}
+
+.p-datatable .p-datatable-tbody > tr.pinned-row:hover {
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0.06) 100%) !important;
+}
+
+/* Pin button styling */
+.pin-button {
+    transition: all 0.2s ease !important;
+}
+
+.pin-button .pi-bookmark {
+    color: #94a3b8 !important;
+}
+
+.pin-button:hover .pi-bookmark {
+    color: #0ea5e9 !important;
+    transform: scale(1.1);
+}
+
+.pin-button-active .pi-bookmark-fill {
+    color: #0ea5e9 !important;
+    animation: pinPulse 0.3s ease;
+}
+
+.pin-button-active:hover .pi-bookmark-fill {
+    color: #0284c7 !important;
+}
+
+@keyframes pinPulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
 /* Menu button styling - Match Flex Table */
 .hamburger-button {
     transition: all 0.2s ease !important;
@@ -483,6 +528,47 @@ body {
     margin-right: 0.75rem !important;
 }
 
+/* Add Row icon - Blue */
+.p-overlaypanel .p-button-text:has(.pi-plus) .pi-plus {
+    color: #3b82f6 !important;
+}
+
+/* Edit Mode / Exit Edit Mode icon - Orange/Red */
+.p-overlaypanel .p-button-text:has(.pi-pencil) .pi-pencil {
+    color: #f97316 !important;
+}
+
+.p-overlaypanel .p-button-text:has(.pi-times) .pi-times {
+    color: #ef4444 !important;
+}
+
+/* Save All icon - Green */
+.p-overlaypanel .p-button-text:has(.pi-save) .pi-save {
+    color: #22c55e !important;
+}
+
+/* Theme toggle icon - Yellow/Purple */
+.p-overlaypanel .p-button-text:has(.pi-sun) .pi-sun {
+    color: #fbbf24 !important;
+}
+
+.p-overlaypanel .p-button-text:has(.pi-moon) .pi-moon {
+    color: #8b5cf6 !important;
+}
+
+/* Flex Table Menu Icons */
+.p-overlaypanel .p-button-text:has(.pi-table) .pi-table {
+    color: #06b6d4 !important;
+}
+
+.p-overlaypanel .p-button-text:has(.pi-window-maximize) .pi-window-maximize {
+    color: #8b5cf6 !important;
+}
+
+.p-overlaypanel .p-button-text:has(.pi-window-minimize) .pi-window-minimize {
+    color: #ef4444 !important;
+}
+
 .p-menu .p-menuitem-text {
     font-size: 0.95rem !important;
     font-weight: 500 !important;
@@ -516,15 +602,17 @@ body {
 
 /* OverlayPanel Styling for Nav Menu */
 .p-overlaypanel {
-    border-radius: 12px !important;
+    border-radius: 16px !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
     border: 1px solid var(--surface-border) !important;
     z-index: 1100 !important;
+    overflow: hidden !important;
 }
 
 .p-overlaypanel .p-overlaypanel-content {
     padding: 0.75rem !important;
     background: var(--surface-card) !important;
+    border-radius: 16px !important;
 }
 
 /* Manual Backdrop for Menu Overlay */
@@ -695,6 +783,96 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* GPS Coordinates Section */
+.gps-coordinates-section {
+    padding: 16px 20px;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--surface-border);
+}
+
+.gps-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.gps-label i {
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+.gps-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.gps-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gps-input-group label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-color-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gps-input {
+    font-size: 13px !important;
+    padding: 8px 12px !important;
+    border: 1px solid var(--surface-border) !important;
+    border-radius: 6px !important;
+    background: var(--surface-ground) !important;
+    font-family: 'Courier New', monospace !important;
+    text-align: center !important;
+}
+
+.gps-input:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+.gps-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+    font-family: 'Courier New', monospace;
+    padding: 8px 12px;
+    background: var(--surface-ground);
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+/* Address Textarea */
+.address-textarea {
+    width: 100%;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-color);
+    padding: 12px;
+    border: 1px solid var(--surface-border);
+    border-radius: 6px;
+    background: var(--surface-ground);
+    resize: vertical;
+    font-family: inherit;
+    min-height: 60px;
+}
+
+.address-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
 }
 
 .info-modal-content {
