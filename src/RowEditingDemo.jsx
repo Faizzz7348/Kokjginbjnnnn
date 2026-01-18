@@ -9,6 +9,7 @@ import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Menu } from 'primereact/menu';
+import { OverlayPanel } from 'primereact/overlaypanel';
 import { Card } from 'primereact/card';
 import { Badge } from 'primereact/badge';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
@@ -50,6 +51,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [selectedRow, setSelectedRow] = useState(null);
     const [showInfoModal, setShowInfoModal] = useState(false);
     const [selectedInfoRow, setSelectedInfoRow] = useState(null);
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
+    const [selectedLocationInfo, setSelectedLocationInfo] = useState(null);
     const menuRef = React.useRef(null);
 
     const allColumns = [
@@ -107,6 +110,52 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             setFilteredModalProducts(filtered);
         }
     }, [globalFilter, modalProducts]);
+
+    // Function to detect duplicate codes in modal products (including other flex tables)
+    const getDuplicateCodes = () => {
+        const codeCounts = {};
+        const duplicates = new Set();
+        
+        // Check codes in current modal
+        modalProducts.forEach(product => {
+            const code = product.code?.trim().toLowerCase();
+            if (code) {
+                codeCounts[code] = (codeCounts[code] || 0) + 1;
+            }
+        });
+        
+        // Also check codes in other saved modal data from other rows
+        Object.keys(rowModalData).forEach(mainRowId => {
+            // Skip if it's the current selected row (already counted above)
+            if (selectedRow && mainRowId === selectedRow.id.toString()) {
+                return;
+            }
+            
+            const otherModalProducts = rowModalData[mainRowId] || [];
+            otherModalProducts.forEach(product => {
+                const code = product.code?.trim().toLowerCase();
+                if (code) {
+                    codeCounts[code] = (codeCounts[code] || 0) + 1;
+                }
+            });
+        });
+        
+        // Mark codes that appear more than once as duplicates
+        Object.keys(codeCounts).forEach(code => {
+            if (codeCounts[code] > 1) {
+                duplicates.add(code);
+            }
+        });
+        
+        return duplicates;
+    };
+
+    // Function to check if a row has duplicate code
+    const hasDuplicateCode = (rowData) => {
+        const duplicates = getDuplicateCodes();
+        const code = rowData.code?.trim().toLowerCase();
+        return duplicates.has(code);
+    };
 
 
 
@@ -305,7 +354,46 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     const onModalRowEditComplete = (e) => {
         let _products = [...modalProducts];
-        let { newData, index } = e;
+        let { newData, index, originalEvent } = e;
+        
+        // Create temporary array with updated data
+        const tempProducts = [...modalProducts];
+        tempProducts[index] = newData;
+        
+        // Get all existing codes from all flex tables
+        const allExistingCodes = [];
+        
+        // Add codes from current modal (except the one being edited)
+        tempProducts.forEach((p, i) => {
+            if (i !== index) {
+                const code = p.code?.trim().toLowerCase();
+                if (code) allExistingCodes.push(code);
+            }
+        });
+        
+        // Add codes from other saved modal data (other main rows)
+        Object.keys(rowModalData).forEach(mainRowId => {
+            // Skip if it's the current selected row
+            if (selectedRow && mainRowId === selectedRow.id.toString()) {
+                return;
+            }
+            
+            const otherModalProducts = rowModalData[mainRowId] || [];
+            otherModalProducts.forEach(product => {
+                const code = product.code?.trim().toLowerCase();
+                if (code) allExistingCodes.push(code);
+            });
+        });
+        
+        // Check if the new code is a duplicate
+        const newCode = newData.code?.trim().toLowerCase();
+        if (newCode && allExistingCodes.includes(newCode)) {
+            // Prevent save by rejecting the edit
+            originalEvent.preventDefault();
+            alert(`⚠️ Duplicate Code Detected!\n\nThe code "${newData.code}" already exists in another flex table.\nPlease use a unique code across all tables.`);
+            return;
+        }
+        
         _products[index] = newData;
         setModalProducts(_products);
         
@@ -376,11 +464,67 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         }
     ];
 
+    const codeEditorWithValidation = (options) => {
+        const currentCode = options.value?.trim().toLowerCase();
+        
+        // Get all existing codes from current modal (except current row)
+        const existingCodesInCurrentModal = modalProducts
+            .filter(p => p.id !== options.rowData.id)
+            .map(p => p.code?.trim().toLowerCase());
+        
+        // Get all existing codes from other flex tables
+        const existingCodesInOtherModals = [];
+        Object.keys(rowModalData).forEach(mainRowId => {
+            // Skip if it's the current selected row
+            if (selectedRow && mainRowId === selectedRow.id.toString()) {
+                return;
+            }
+            
+            const otherModalProducts = rowModalData[mainRowId] || [];
+            otherModalProducts.forEach(product => {
+                const code = product.code?.trim().toLowerCase();
+                if (code) existingCodesInOtherModals.push(code);
+            });
+        });
+        
+        // Combine all existing codes
+        const allExistingCodes = [...existingCodesInCurrentModal, ...existingCodesInOtherModals];
+        const isDuplicate = currentCode && allExistingCodes.includes(currentCode);
+        
+        return (
+            <div style={{ position: 'relative' }}>
+                <InputText 
+                    type="text" 
+                    value={options.value} 
+                    onChange={(e) => options.editorCallback(e.target.value)}
+                    className={isDuplicate ? 'p-invalid' : ''}
+                    style={isDuplicate ? { 
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                    } : {}}
+                />
+                {isDuplicate && (
+                    <small style={{ 
+                        color: '#ef4444', 
+                        fontSize: '10px',
+                        position: 'absolute',
+                        bottom: '-18px',
+                        left: '0',
+                        whiteSpace: 'nowrap'
+                    }}>
+                        ⚠️ Duplicate code!
+                    </small>
+                )}
+            </div>
+        );
+    };
+
     const getColumnEditor = (field) => {
         switch (field) {
             case 'inventoryStatus':
                 return deliveryEditor;
             case 'code':
+                return codeEditorWithValidation;
             case 'location':
             default:
                 return textEditor;
@@ -391,9 +535,33 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         switch (field) {
             case 'inventoryStatus':
                 return statusBodyTemplate;
+            case 'code':
+                return codeBodyTemplate;
             default:
                 return null;
         }
+    };
+
+    const codeBodyTemplate = (rowData) => {
+        const isDuplicate = hasDuplicateCode(rowData);
+        
+        if (isDuplicate) {
+            return (
+                <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    gap: '6px',
+                    color: '#ef4444',
+                    fontWeight: 'bold'
+                }}>
+                    <i className="pi pi-exclamation-triangle" style={{ fontSize: '14px' }}></i>
+                    {rowData.code}
+                </div>
+            );
+        }
+        
+        return rowData.code;
     };
 
     const modalHeaderTemplate = () => {
@@ -420,15 +588,51 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     <Button
                         onClick={(e) => menuRef.current.toggle(e)}
                         icon="pi pi-bars"
-                        className="p-button-text"
+                        className="p-button-text menu-button-large"
                         aria-label="Menu"
+                        style={{
+                            fontSize: '1.25rem',
+                            width: '3rem',
+                            height: '3rem'
+                        }}
                     />
-                    <Menu
-                        model={menuItems}
-                        popup
-                        ref={menuRef}
-                        popupAlignment="right"
-                    />
+                    <OverlayPanel ref={menuRef} appendTo={document.body} style={{ width: '250px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <Button
+                                label="Add Row"
+                                icon="pi pi-plus"
+                                className="p-button-text p-button-plain"
+                                onClick={() => {
+                                    addModalRow();
+                                    menuRef.current.hide();
+                                }}
+                                disabled={!isEditMode}
+                                style={{ justifyContent: 'flex-start' }}
+                            />
+                            <div style={{ borderTop: '1px solid var(--surface-border)', margin: '4px 0' }} />
+                            <Button
+                                label="Column Customize"
+                                icon="pi pi-table"
+                                className="p-button-text p-button-plain"
+                                onClick={() => {
+                                    openCustomizeModal();
+                                    menuRef.current.hide();
+                                }}
+                                style={{ justifyContent: 'flex-start' }}
+                            />
+                            <div style={{ borderTop: '1px solid var(--surface-border)', margin: '4px 0' }} />
+                            <Button
+                                label={isModalMaximized ? 'Exit Fullscreen' : 'Fullscreen'}
+                                icon={isModalMaximized ? 'pi pi-window-minimize' : 'pi pi-window-maximize'}
+                                className="p-button-text p-button-plain"
+                                onClick={() => {
+                                    toggleModalMaximize();
+                                    menuRef.current.hide();
+                                }}
+                                style={{ justifyContent: 'flex-start' }}
+                            />
+                        </div>
+                    </OverlayPanel>
                 </div>
             </div>
         );
@@ -440,8 +644,17 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     }));
 
     const onOpenInfoModal = (rowData) => {
-        setSelectedInfoRow(rowData);
-        setShowInfoModal(true);
+        // Add mock data for demonstration - you can replace with actual data
+        const locationData = {
+            code: rowData.code,
+            location: rowData.location || rowData.code,
+            inventoryStatus: rowData.inventoryStatus,
+            kilometer: '2.5 Km', // Mock data
+            latitude: '3.1390',  // Mock data
+            longitude: '101.6869' // Mock data
+        };
+        setSelectedLocationInfo(locationData);
+        setInfoModalVisible(true);
     };
 
     const actionBodyTemplate = (rowData) => {
@@ -533,10 +746,21 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const modalRowClassName = (rowData) => {
+        // Check for duplicate code first
+        if (hasDuplicateCode(rowData)) {
+            return 'duplicate-row';
+        }
+        
+        // Then check for pre-saved status
         if (selectedRow && modalPreSavedRows[selectedRow.id]) {
             return modalPreSavedRows[selectedRow.id][rowData.id] ? 'pre-saved-row' : '';
         }
         return '';
+    };
+
+    // Add function to check if row should be editable
+    const allowModalEdit = (rowData) => {
+        return !hasDuplicateCode(rowData);
     };
 
     return (
@@ -557,6 +781,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 visible={showFlexTableModal}
                 style={isModalMaximized ? { width: '100vw', height: '100vh' } : { width: '75vw' }}
                 modal
+                dismissableMask
                 closable={false}
                 closeOnEscape={false}
                 contentStyle={isModalMaximized ? { height: 'calc(100vh - 150px)' } : { height: '350px' }}
@@ -658,7 +883,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     {isEditMode && (
                         <Column
                             header="Editable"
-                            rowEditor
+                            rowEditor={allowModalEdit}
                             headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }}
                             bodyStyle={{ textAlign: 'center' }}
                         />
@@ -670,6 +895,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     visible={customizeModalVisible}
                     style={{ width: '450px' }}
                     modal
+                    dismissableMask
                     onHide={cancelColumnCustomization}
                     footer={
                         <div>
@@ -710,57 +936,120 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 </Dialog>
             </Dialog>
 
-            {/* Info Modal with Card and Map */}
-            <Dialog
-                header="Location Information"
-                visible={showInfoModal}
-                style={{ width: '50vw' }}
+            {/* Info Modal with Card and Map - Huijack Style */}
+            <Dialog 
+                visible={infoModalVisible}
+                style={{ width: '70vw', maxWidth: '900px' }}
                 modal
-                onHide={() => setShowInfoModal(false)}
-                footer={
-                    <div>
-                        <Button label="Close" icon="pi pi-times" onClick={() => setShowInfoModal(false)} />
-                    </div>
-                }
+                onHide={() => setInfoModalVisible(false)}
+                contentStyle={{ padding: 0, overflow: 'hidden', borderRadius: '16px' }}
+                headerStyle={{ display: 'none' }}
+                dismissableMask
+                className="info-modal-dialog"
             >
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <Card 
-                        title={selectedInfoRow?.code || 'Location'} 
-                        style={{ width: '100%' }}
-                    >
-                        {/* Leaflet Map */}
-                        <div style={{ 
-                            width: '100%', 
-                            height: '300px', 
-                            borderRadius: '8px',
-                            overflow: 'hidden',
-                            marginBottom: '1rem'
-                        }}>
-                            <MapContainer 
-                                center={[3.1390, 101.6869]} 
-                                zoom={13} 
-                                style={{ height: '100%', width: '100%' }}
-                                scrollWheelZoom={false}
-                            >
-                                <TileLayer
-                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                />
-                                <Marker position={[3.1390, 101.6869]}>
-                                    <Popup>
-                                        {selectedInfoRow?.location || 'Location'}
-                                    </Popup>
-                                </Marker>
-                            </MapContainer>
+                {selectedLocationInfo && (
+                    <div className="info-modal-container">
+                        {/* Map Header */}
+                        <div className="info-map-wrapper">
+                            <iframe
+                                title="location-map"
+                                width="100%"
+                                height="250"
+                                frameBorder="0"
+                                style={{ border: 0 }}
+                                src={`https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3983.8!2d${selectedLocationInfo.longitude || '101.6869'}!3d${selectedLocationInfo.latitude || '3.1390'}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zM8KwMDgnMjEuMiJOIDEwMcKwMzUnMDYuNCJF!5e0!3m2!1sen!2smy!4v1234567890`}
+                                allowFullScreen
+                            ></iframe>
+                            <div className="map-overlay-badge">
+                                <i className="pi pi-map-marker"></i>
+                                Location Details
+                            </div>
                         </div>
 
-                        <div>
-                            <p style={{ marginBottom: '0.5rem' }}><strong>Code:</strong> {selectedInfoRow?.code || 'N/A'}</p>
-                            <p style={{ marginBottom: '0.5rem' }}><strong>Location:</strong> {selectedInfoRow?.location || 'N/A'}</p>
-                            <p style={{ marginBottom: '0.5rem' }}><strong>Delivery:</strong> {selectedInfoRow?.inventoryStatus || 'N/A'}</p>
+                        {/* Content */}
+                        <div className="info-modal-content">
+                            {/* Header Section */}
+                            <div className="info-header-section">
+                                <div className="info-title-wrapper">
+                                    <h2 className="info-title">{selectedLocationInfo.location || selectedLocationInfo.code}</h2>
+                                    <span className="info-code-badge">#{selectedLocationInfo.code}</span>
+                                </div>
+                                <span className={`delivery-type-badge ${(selectedLocationInfo.inventoryStatus || 'standard').toLowerCase()}`}>
+                                    <i className="pi pi-truck"></i>
+                                    {selectedLocationInfo.inventoryStatus || 'Standard'}
+                                </span>
+                            </div>
+
+                            {/* Info Grid */}
+                            <div className="info-grid-container">
+                                <div className="info-grid-item">
+                                    <div className="info-icon-wrapper distance">
+                                        <i className="pi pi-compass"></i>
+                                    </div>
+                                    <div className="info-text-wrapper">
+                                        <span className="info-label">Distance</span>
+                                        <span className="info-value">{selectedLocationInfo.kilometer || '0.0 Km'}</span>
+                                    </div>
+                                </div>
+
+                                <div className="info-grid-item">
+                                    <div className="info-icon-wrapper delivery">
+                                        <i className="pi pi-send"></i>
+                                    </div>
+                                    <div className="info-text-wrapper">
+                                        <span className="info-label">Delivery Type</span>
+                                        <span className="info-value">{selectedLocationInfo.inventoryStatus || 'Standard'}</span>
+                                    </div>
+                                </div>
+
+                                <div className="info-grid-item full-width">
+                                    <div className="info-icon-wrapper coordinates">
+                                        <i className="pi pi-globe"></i>
+                                    </div>
+                                    <div className="info-text-wrapper">
+                                        <span className="info-label">GPS Coordinates</span>
+                                        <span className="info-value coordinates-value">
+                                            <span className="coordinate-item">
+                                                <i className="pi pi-angle-up"></i> {selectedLocationInfo.latitude || '3.1390'}°
+                                            </span>
+                                            <span className="coordinate-separator">•</span>
+                                            <span className="coordinate-item">
+                                                <i className="pi pi-angle-right"></i> {selectedLocationInfo.longitude || '101.6869'}°
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Quick Actions */}
+                            <div className="quick-actions-section">
+                                <button className="quick-action-btn primary">
+                                    <i className="pi pi-directions"></i>
+                                    Get Directions
+                                </button>
+                                <button className="quick-action-btn secondary">
+                                    <i className="pi pi-share-alt"></i>
+                                    Share Location
+                                </button>
+                            </div>
+
+                            {/* Footer Actions */}
+                            <div className="info-modal-footer">
+                                <Button 
+                                    label="Close" 
+                                    icon="pi pi-times" 
+                                    className="p-button-text"
+                                    onClick={() => setInfoModalVisible(false)}
+                                />
+                                <Button 
+                                    label="Save to Route" 
+                                    icon="pi pi-check" 
+                                    onClick={() => setInfoModalVisible(false)}
+                                />
+                            </div>
                         </div>
-                    </Card>
-                </div>
+                    </div>
+                )}
             </Dialog>
         </div>
     );

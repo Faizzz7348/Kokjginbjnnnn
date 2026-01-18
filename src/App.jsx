@@ -124,13 +124,19 @@ function App() {
                     <Button
                         onClick={(e) => menuRef.current.toggle(e)}
                         icon="pi pi-bars"
-                        className="p-button-text"
+                        className="p-button-text nav-menu-button"
                         aria-label="Menu"
+                        style={{
+                            fontSize: '1.25rem',
+                            width: '3rem',
+                            height: '3rem'
+                        }}
                     />
                     <Menu
                         model={menuItems}
                         popup
                         ref={menuRef}
+                        appendTo={document.body}
                     />
                 </div>
             </nav>

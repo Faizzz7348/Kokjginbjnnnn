@@ -35,6 +35,13 @@ td {
     display: none !important;
 }
 
+/* Backdrop blur effect for all modals */
+.p-dialog-mask {
+    backdrop-filter: blur(8px) !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    transition: backdrop-filter 0.3s ease !important;
+}
+
 /* Main DataTable styling with border radius */
 .p-datatable {
     border-radius: 12px !important;
@@ -270,6 +277,94 @@ body {
     background-color: rgba(255, 193, 7, 0.25) !important;
 }
 
+/* Duplicate row styling */
+.p-datatable .p-datatable-tbody > tr.duplicate-row {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    border-left: 4px solid #ef4444 !important;
+}
+
+.p-datatable .p-datatable-tbody > tr.duplicate-row:hover {
+    background-color: rgba(239, 68, 68, 0.25) !important;
+}
+
+/* Disable edit icons on duplicate rows */
+.p-datatable .p-datatable-tbody > tr.duplicate-row .p-row-editor-init,
+.p-datatable .p-datatable-tbody > tr.duplicate-row .p-row-editor-save,
+.p-datatable .p-datatable-tbody > tr.duplicate-row .p-row-editor-cancel {
+    opacity: 0.3 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+}
+
+/* Add a visual indicator for duplicate codes */
+.p-datatable .p-datatable-tbody > tr.duplicate-row td {
+    position: relative;
+}
+
+/* Invalid input styling for duplicate detection */
+.p-inputtext.p-invalid {
+    border-color: #ef4444 !important;
+    animation: shake 0.5s;
+}
+
+.p-inputtext.p-invalid:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25) !important;
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+/* Menu button styling */
+.menu-button-large,
+.nav-menu-button {
+    transition: all 0.3s ease !important;
+}
+
+.menu-button-large:hover,
+.nav-menu-button:hover {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    transform: scale(1.05);
+}
+
+.menu-button-large .pi,
+.nav-menu-button .pi {
+    font-size: 1.25rem !important;
+}
+
+/* Menu popup styling */
+.p-menu {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 12px !important;
+    border: 1px solid var(--surface-border) !important;
+    z-index: 1001 !important;
+}
+
+.p-menu .p-menuitem-link {
+    padding: 0.875rem 1.25rem !important;
+    transition: all 0.2s ease !important;
+}
+
+.p-menu .p-menuitem-link:hover {
+    background: var(--primary-color) !important;
+    color: white !important;
+}
+
+.p-menu .p-menuitem-icon {
+    font-size: 1.1rem !important;
+    margin-right: 0.75rem !important;
+}
+
 /* Menu item colors */
 .menu-save-all .p-menuitem-text,
 .menu-save-all .p-menuitem-icon {
@@ -289,4 +384,268 @@ body {
 .menu-exit-edit-mode:hover .p-menuitem-text,
 .menu-exit-edit-mode:hover .p-menuitem-icon {
     color: #dc2626 !important;
+}
+
+/* Info Modal Dialog Styling - Huijack Style */
+.info-modal-dialog .p-dialog-content {
+    border-radius: 16px !important;
+    overflow: hidden;
+    border: none !important;
+}
+
+.info-modal-container {
+    background: var(--surface-ground);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.info-map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+}
+
+.map-overlay-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.info-modal-content {
+    padding: 24px;
+}
+
+.info-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--surface-border);
+}
+
+.info-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-title {
+    color: var(--text-color);
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.info-code-badge {
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.delivery-type-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.delivery-type-badge.daily,
+.delivery-type-badge.am {
+    background: rgba(52, 199, 89, 0.15);
+    color: #34c759;
+}
+
+.delivery-type-badge.express,
+.delivery-type-badge.pm {
+    background: rgba(255, 149, 0, 0.15);
+    color: #ff9500;
+}
+
+.delivery-type-badge.standard {
+    background: rgba(0, 122, 255, 0.15);
+    color: #007aff;
+}
+
+.info-grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.info-grid-item {
+    background: var(--surface-card);
+    border: 1px solid var(--surface-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.info-grid-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #007aff;
+}
+
+.info-grid-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.info-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.info-icon-wrapper.distance {
+    background: linear-gradient(135deg, #FF9500 0%, #FF6B00 100%);
+    box-shadow: 0 4px 12px rgba(255, 149, 0, 0.3);
+}
+
+.info-icon-wrapper.delivery {
+    background: linear-gradient(135deg, #34C759 0%, #28A745 100%);
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.info-icon-wrapper.coordinates {
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.info-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.info-label {
+    color: var(--text-color-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    color: var(--text-color);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.coordinates-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.coordinate-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.coordinate-separator {
+    color: var(--text-color-secondary);
+}
+
+.quick-actions-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.quick-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.quick-action-btn.primary {
+    background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.quick-action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.4);
+}
+
+.quick-action-btn.secondary {
+    background: var(--surface-card);
+    color: var(--text-color);
+    border: 1px solid var(--surface-border);
+}
+
+.quick-action-btn.secondary:hover {
+    background: var(--surface-hover);
+    border-color: #007aff;
+    transform: translateY(-2px);
+}
+
+.info-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--surface-border);
+}
+
+/* Responsive for info modal */
+@media (max-width: 768px) {
+    .info-modal-container {
+        width: 95vw;
+    }
+    
+    .info-grid-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-grid-item.full-width {
+        grid-column: 1;
+    }
 }
