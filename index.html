@@ -4,7 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PrimeReact Dark Mode Demo</title>
+    
+    <!-- Preconnect to CDN -->
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    
+    <!-- Preload critical CSS for faster rendering -->
+    <link rel="preload" href="https://unpkg.com/primereact/resources/primereact.min.css" as="style">
+    <link rel="preload" href="https://unpkg.com/primeicons/primeicons.css" as="style">
+    
+    <!-- Load CSS immediately -->
+    <link rel="stylesheet" href="https://unpkg.com/primereact/resources/primereact.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
 </head>
 <body>
     <div id="root"></div>

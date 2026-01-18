@@ -25,6 +25,7 @@ import 'lightgallery/css/lg-fullscreen.css';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgZoom from 'lightgallery/plugins/zoom';
 import lgFullscreen from 'lightgallery/plugins/fullscreen';
+import { PowerModeModal } from './components/PowerModeModal';
 
 // Fix for default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -71,6 +72,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [imageUploadDialogVisible, setImageUploadDialogVisible] = useState(false);
     const [imageUrlInput, setImageUrlInput] = useState('');
     const [imageCaptionInput, setImageCaptionInput] = useState('');
+    const [powerModalVisible, setPowerModalVisible] = useState(false);
+    const [selectedPowerRow, setSelectedPowerRow] = useState(null);
 
     // Memoize sorted products to prevent infinite re-renders
     const sortedProducts = useMemo(() => {
@@ -277,7 +280,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const statusBodyTemplate = (rowData) => {
-        return <Tag value={rowData.inventoryStatus} severity={getSeverity(rowData.inventoryStatus)}></Tag>;
+        return rowData.inventoryStatus;
     };
 
     const priceBodyTemplate = (rowData) => {
@@ -400,6 +403,10 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const onModalRowEditComplete = (e) => {
         let _products = [...modalProducts];
         let { newData, index, originalEvent } = e;
+        
+        // Preserve images from original row data (images not edited in form)
+        const originalRow = modalProducts[index];
+        newData.images = originalRow.images || [];
         
         // Create temporary array with updated data
         const tempProducts = [...modalProducts];
@@ -571,6 +578,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             case 'code':
                 return codeEditorWithValidation;
             case 'location':
+                return textEditor;
+            case 'images':
+                return null; // Images tidak editable via field, gunakan pencil icon
             default:
                 return textEditor;
         }
@@ -614,6 +624,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     // Image Body Template untuk display images
     const imageBodyTemplate = (rowData) => {
         const images = rowData.images || [];
+        // Check if row is being edited in either main table or modal table
+        const isRowBeingEdited = (editingRows && editingRows[rowData.id]) || 
+                                  (modalEditingRows && modalEditingRows[rowData.id]);
         
         if (!images || images.length === 0) {
             return (
@@ -660,8 +673,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             </div>
                         </div>
                         
-                        {/* Pencil icon - show in edit mode */}
-                        {isEditMode && (
+                        {/* Pencil icon - show bila row dalam edit mode */}
+                        {isEditMode && isRowBeingEdited && (
                             <div
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -680,16 +693,19 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     justifyContent: 'center',
                                     cursor: 'pointer',
                                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                    transition: 'all 0.2s',
-                                    zIndex: 10
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    zIndex: 10,
+                                    animation: 'fadeInScale 0.3s ease-out'
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.backgroundColor = '#1976d2';
-                                    e.currentTarget.style.transform = 'scale(1.15)';
+                                    e.currentTarget.style.transform = 'scale(1.2) rotate(15deg)';
+                                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.backgroundColor = '#2196f3';
-                                    e.currentTarget.style.transform = 'scale(1)';
+                                    e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
                                 }}
                                 title="Add Images"
                             >
@@ -720,52 +736,64 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     }}
                 >
                     <div
-                        onClick={() => openLightbox(imageArray, 0)}
                         style={{ 
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.25rem',
-                            padding: '0.25rem 0.5rem',
-                            borderRadius: '0.5rem',
-                            backgroundColor: '#e3f2fd',
-                            border: '1px solid #90caf9',
-                            transition: 'all 0.2s',
-                            position: 'relative'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#bbdefb';
-                            e.currentTarget.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = '#e3f2fd';
-                            e.currentTarget.style.transform = 'scale(1)';
+                            position: 'relative',
+                            display: 'inline-block'
                         }}
                     >
-                        {imageArray.length > 0 && (
-                            <img 
-                                src={imageArray[0].url} 
-                                alt={imageArray[0].caption || 'Preview'}
-                                style={{ 
-                                    width: '32px', 
-                                    height: '32px', 
-                                    objectFit: 'cover', 
-                                    borderRadius: '0.375rem',
-                                    border: '2px solid white'
-                                }}
-                            />
-                        )}
-                        <span style={{ 
-                            fontSize: '0.875rem', 
-                            fontWeight: '500',
-                            color: '#1976d2'
-                        }}>
-                            {imageArray.length}
-                        </span>
-                        <i className="pi pi-images" style={{ fontSize: '0.875rem', color: '#1976d2' }}></i>
+                        <div
+                            onClick={() => openLightbox(imageArray, 0)}
+                            style={{ 
+                                cursor: 'pointer',
+                                position: 'relative',
+                                width: '50px',
+                                height: '40px'
+                            }}
+                        >
+                            {imageArray.length > 0 && imageArray[0].url && (
+                                <>
+                                    <img 
+                                        src={imageArray[0].url} 
+                                        alt={imageArray[0].caption || 'Preview'}
+                                        style={{ 
+                                            width: '100%', 
+                                            height: '100%', 
+                                            objectFit: 'cover', 
+                                            borderRadius: '4px',
+                                            border: '1px solid #e5e7eb',
+                                            display: 'block',
+                                            transition: 'opacity 0.3s'
+                                        }}
+                                        onError={(e) => {
+                                            console.error('Image failed to load:', imageArray[0].url);
+                                            e.target.style.display = 'none';
+                                        }}
+                                    />
+                                    {/* Count badge inside image */}
+                                    {imageArray.length > 1 && (
+                                        <span style={{
+                                            position: 'absolute',
+                                            bottom: '3px',
+                                            right: '3px',
+                                            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                                            color: 'white',
+                                            fontSize: '9px',
+                                            fontWeight: '600',
+                                            padding: '2px 5px',
+                                            borderRadius: '3px',
+                                            lineHeight: '1',
+                                            pointerEvents: 'none',
+                                            zIndex: 1
+                                        }}>
+                                            +{imageArray.length - 1}
+                                        </span>
+                                    )}
+                                </>
+                            )}
+                        </div>
                         
-                        {/* Pencil icon - hanya muncul dalam edit mode, positioned on preview */}
-                        {isEditMode && (
+                        {/* Pencil icon - hanya muncul bila row dalam edit mode */}
+                        {isEditMode && isRowBeingEdited && (
                             <div
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevent lightbox from opening
@@ -784,16 +812,19 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     justifyContent: 'center',
                                     cursor: 'pointer',
                                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                    transition: 'all 0.2s',
-                                    zIndex: 10
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    zIndex: 10,
+                                    animation: 'fadeInScale 0.3s ease-out'
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.backgroundColor = '#1976d2';
-                                    e.currentTarget.style.transform = 'scale(1.15)';
+                                    e.currentTarget.style.transform = 'scale(1.2) rotate(15deg)';
+                                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.backgroundColor = '#2196f3';
-                                    e.currentTarget.style.transform = 'scale(1)';
+                                    e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                                    e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
                                 }}
                                 title="Manage Images"
                             >
@@ -1102,8 +1133,28 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const modalActionBodyTemplate = (rowData) => {
+        const isRowBeingEdited = modalEditingRows[rowData.id] !== undefined;
+
+        const handlePowerClick = () => {
+            setSelectedPowerRow(rowData);
+            setPowerModalVisible(true);
+        };
+
         return (
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                {isRowBeingEdited && (
+                    <Button
+                        icon="pi pi-power-off"
+                        text
+                        onClick={handlePowerClick}
+                        tooltip="Configure Power Mode"
+                        tooltipOptions={{ position: 'top' }}
+                        style={{ 
+                            color: rowData.powerMode ? '#22c55e' : '#94a3b8',
+                            cursor: 'pointer'
+                        }}
+                    />
+                )}
                 <Button
                     icon="pi pi-info-circle"
                     text
@@ -1275,8 +1326,17 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 header={col.header}
                                 editor={isEditMode ? getColumnEditor(col.field) : null}
                                 body={getColumnBody(col.field)}
+                                style={{ 
+                                    minWidth: col.field === 'code' ? '120px' : 
+                                              col.field === 'location' ? '200px' : 
+                                              col.field === 'inventoryStatus' ? '120px' : 
+                                              col.field === 'images' ? '100px' : '150px'
+                                }}
                                 headerStyle={{ textAlign: 'center' }}
-                                bodyStyle={{ textAlign: 'center' }}
+                                bodyStyle={{ 
+                                    textAlign: 'center',
+                                    whiteSpace: 'nowrap'
+                                }}
                             />
                         ))
                     }
@@ -1354,10 +1414,10 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             {/* Info Modal with Card and Map - Huijack Style */}
             <Dialog 
                 visible={infoModalVisible}
-                style={{ width: '60vw', maxWidth: '700px' }}
+                style={{ width: '60vw', maxWidth: '700px', maxHeight: '90vh' }}
                 modal
                 onHide={() => setInfoModalVisible(false)}
-                contentStyle={{ padding: 0, overflow: 'hidden', borderRadius: '16px' }}
+                contentStyle={{ padding: 0, overflow: 'auto', borderRadius: '16px', maxHeight: '85vh' }}
                 headerStyle={{ display: 'none' }}
                 dismissableMask
                 className="info-modal-dialog"
@@ -1741,6 +1801,37 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     backdropDuration={300}
                 />
             </div>
+
+            {/* Power Mode Modal */}
+            <PowerModeModal
+                visible={powerModalVisible}
+                onHide={() => {
+                    setPowerModalVisible(false);
+                    setSelectedPowerRow(null);
+                }}
+                rowData={selectedPowerRow}
+                onSave={(newMode) => {
+                    if (selectedPowerRow) {
+                        // Update in modal products
+                        const updatedProducts = modalProducts.map(p => 
+                            p.id === selectedPowerRow.id ? { ...p, powerMode: newMode } : p
+                        );
+                        setModalProducts(updatedProducts);
+                        setFilteredModalProducts(updatedProducts);
+                        
+                        // Mark as pre-saved
+                        if (selectedRow) {
+                            setModalPreSavedRows(prev => ({
+                                ...prev,
+                                [selectedRow.id]: {
+                                    ...(prev[selectedRow.id] || {}),
+                                    [selectedPowerRow.id]: true
+                                }
+                            }));
+                        }
+                    }
+                }}
+            />
         </div>
         </>
     );

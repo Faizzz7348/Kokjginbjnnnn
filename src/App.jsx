@@ -4,10 +4,6 @@ import { Button } from 'primereact/button';
 import { OverlayPanel } from 'primereact/overlaypanel';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 
-// Import PrimeReact CSS
-import 'primereact/resources/primereact.min.css';
-import 'primeicons/primeicons.css';
-
 function App() {
     const [theme, setTheme] = useState('dark');
     const menuRef = React.useRef(null);
@@ -20,12 +16,15 @@ function App() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
-        // Load initial theme immediately
-        const link = document.createElement('link');
-        link.id = 'theme-link';
-        link.rel = 'stylesheet';
-        link.href = 'https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css';
-        document.head.appendChild(link);
+        // Check if theme already loaded from preload
+        const existingTheme = document.getElementById('theme-link');
+        if (!existingTheme) {
+            const link = document.createElement('link');
+            link.id = 'theme-link';
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css';
+            document.head.appendChild(link);
+        }
     }, []);
 
     // Click outside to close menu
