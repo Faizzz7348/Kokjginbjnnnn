@@ -1,6 +1,24 @@
+const API_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? '/api'
+    : 'http://localhost:3001/api';
+
 export const CustomerService = {
-    getCustomersMedium() {
-        return Promise.resolve([
+    async getCustomersMedium() {
+        try {
+            const response = await fetch(`${API_URL}/customers`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch customers');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching customers:', error);
+            // Fallback to mock data if API fails
+            return this.getMockCustomers();
+        }
+    },
+
+    getMockCustomers() {
+        return [
             {
                 id: 1000,
                 name: 'James Butt',
@@ -261,6 +279,6 @@ export const CustomerService = {
                     image: 'xuxuefeng.png'
                 }
             }
-        ]);
+        ];
     }
 };

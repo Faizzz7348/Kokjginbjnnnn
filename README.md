@@ -1,53 +1,80 @@
-# PrimeReact DataTable with Dark Mode & Image Gallery
+# PrimeReact DataTable with PostgreSQL Database
 
-Aplikasi React dengan PrimeReact DataTable yang memiliki fitur:
-- DataTable dengan scroll di dalam Dialog
-- Dark Mode / Light Mode toggle
-- **🆕 Image Column dengan Lightbox Gallery**
-- **🆕 Image Management (Add/Delete)**
-- **🆕 Multiple Images per Row**
-- Flex Table dengan Row Editing
-- Customer data sample
+Full-stack aplikasi React dengan PrimeReact DataTable dan PostgreSQL database.
 
-## ✨ New Features - Image Column
+## ✨ Features
 
-Column **Images** telah ditambah dengan full functionality:
-- 🖼️ Image preview dengan thumbnail
-- 🔍 Lightbox gallery dengan zoom
-- 📸 Add/Delete images (Edit Mode)
-- 🎨 Captions support
-- 📱 Responsive design
+- 🎨 DataTable dengan Dark/Light Mode toggle
+- 🖼️ Image Column dengan Lightbox Gallery
+- 🗄️ PostgreSQL Database (Neon)
+- 🚀 Express.js REST API
+- ✏️ Row Editing & CRUD Operations
+- 📱 Responsive Design
+- ☁️ Vercel Ready
 
-**[📖 Read Full Documentation →](./IMAGE_COLUMN_FEATURES.md)**
-
-## Struktur File
+## 📁 Struktur Project
 
 ```
-├── public/
-│   └── index.html
-├── src/
+├── api/                    # Vercel Serverless Functions
+│   └── index.js
+├── server/                 # Local Development Server
+│   ├── db.js
+│   ├── index.js
+│   ├── initDb.js
+│   └── routes/
+├── src/                    # React Frontend
+│   ├── components/
 │   ├── service/
-│   │   └── CustomerService.js
 │   ├── App.jsx
-│   ├── FlexibleScrollDemo.jsx
 │   └── index.jsx
-├── package.json
-└── vite.config.js
+├── docs/                   # Documentation
+├── .env                    # Environment Variables
+├── vercel.json            # Vercel Configuration
+└── package.json
 ```
 
-## Instalasi
+## 🚀 Quick Start
 
+### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-## Menjalankan Aplikasi
+### 2. Setup Environment
+Create `.env` file dengan DATABASE_URL anda (sudah ada).
 
+### 3. Initialize Database
 ```bash
-npm start
+npm run init-db
 ```
 
-Aplikasi akan berjalan di http://localhost:3000
+### 4. Run Development
+```bash
+# Run frontend & backend serentak
+npm run dev
+
+# Atau secara berasingan:
+npm run server  # Backend di port 3001
+npm start       # Frontend di port 5173
+```
+
+## 📚 Documentation
+
+- [Database Setup Guide](./DATABASE_SETUP.md)
+- [Vercel Deployment Guide](./VERCEL_DEPLOY.md)
+- [Additional Docs](./docs/)
+
+## 🌐 API Endpoints
+
+- `GET/POST/PUT/DELETE /api/customers`
+- `GET/POST/PUT/DELETE /api/products`
+
+## 🛠️ Tech Stack
+
+- **Frontend:** React, PrimeReact, Vite
+- **Backend:** Express.js, Node.js
+- **Database:** PostgreSQL (Neon)
+- **Deployment:** Vercel
 
 ## Fitur
 

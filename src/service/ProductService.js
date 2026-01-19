@@ -1,6 +1,33 @@
+const API_URL = typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? '/api'
+    : 'http://localhost:3001/api';
+
 export const ProductService = {
-    getProductsMini() {
-        return Promise.resolve([
+    async getProductsMini() {
+        try {
+            const response = await fetch(`${API_URL}/products`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch products');
+            }
+            const products = await response.json();
+            
+            // Add mock images and location data
+            return products.map(product => ({
+                ...product,
+                location: 'Warehouse A',
+                images: [
+                    { url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', caption: 'Product View 1' }
+                ]
+            }));
+        } catch (error) {
+            console.error('Error fetching products:', error);
+            // Fallback to mock data if API fails
+            return this.getMockProducts();
+        }
+    },
+
+    getMockProducts() {
+        return [
             {
                 id: '1000',
                 code: 'f230fh0g3',
@@ -139,6 +166,6 @@ export const ProductService = {
                 inventoryStatus: 'Weekday',
                 rating: 3
             }
-        ]);
+        ];
     }
 };
