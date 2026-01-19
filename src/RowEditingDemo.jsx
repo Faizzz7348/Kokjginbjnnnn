@@ -274,9 +274,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 onChange={(e) => options.editorCallback(e.value)}
                 placeholder="Select Shift"
                 appendTo={document.body}
-                itemTemplate={(option) => {
-                    return <Tag value={option} severity={getSeverity(option)}></Tag>;
-                }}
             />
         );
     };
@@ -300,9 +297,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const statusBodyTemplate = (rowData) => {
-        // Show Tag component with color based on shift value
-        if (!rowData.inventoryStatus) return null;
-        return <Tag value={rowData.inventoryStatus} severity={getSeverity(rowData.inventoryStatus)}></Tag>;
+        // Show plain text without tag/badge
+        return rowData.inventoryStatus || null;
     };
 
     const priceBodyTemplate = (rowData) => {
