@@ -9,3 +9,8 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// Remove loading state after app renders
+setTimeout(() => {
+  document.getElementById('root').classList.add('loaded');
+}, 100);

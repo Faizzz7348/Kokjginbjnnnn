@@ -16,15 +16,9 @@ function App() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
-        // Check if theme already loaded from preload
-        const existingTheme = document.getElementById('theme-link');
-        if (!existingTheme) {
-            const link = document.createElement('link');
-            link.id = 'theme-link';
-            link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css';
-            document.head.appendChild(link);
-        }
+        // Theme already loaded in HTML head, no need to load again
+        // Just set the theme state
+        setTheme('dark');
     }, []);
 
     // Click outside to close menu
@@ -53,20 +47,21 @@ function App() {
     }, []);
 
     const loadTheme = (themeName) => {
-        // Remove old theme link
-        const existingThemeLink = document.getElementById('theme-link');
-        if (existingThemeLink) {
-            existingThemeLink.remove();
+        const themeLink = document.getElementById('theme-link');
+        if (themeLink) {
+            // Add loading class to prevent flash
+            document.body.style.opacity = '0.95';
+            
+            // Change theme instantly (already preloaded)
+            themeLink.href = themeName === 'dark' 
+                ? 'https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css'
+                : 'https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css';
+            
+            // Wait for CSS to apply then restore opacity
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
         }
-
-        // Add new theme link
-        const link = document.createElement('link');
-        link.id = 'theme-link';
-        link.rel = 'stylesheet';
-        link.href = themeName === 'dark' 
-            ? 'https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css'
-            : 'https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css';
-        document.head.appendChild(link);
     };
 
     const toggleTheme = () => {

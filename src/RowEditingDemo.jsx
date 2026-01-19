@@ -1283,7 +1283,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 <Column field="name" header="Warehouse" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={isEditMode ? (options) => shiftEditor(options) : null} style={{ width: '20%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column header="Action" body={actionBodyTemplate} exportable={false} style={{ width: '10%', minWidth: '8rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column body={deleteButtonTemplate} exportable={false} style={{ width: '5%', minWidth: '4rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                {Object.keys(editingRows).length > 0 && <Column body={deleteButtonTemplate} exportable={false} style={{ width: '5%', minWidth: '4rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
                 {isEditMode && <Column rowEditor={allowEdit} header="Editable" headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
             </DataTable>
             </div>
@@ -1394,13 +1394,15 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         headerStyle={{ textAlign: 'center' }}
                         bodyStyle={{ textAlign: 'center' }}
                     />
-                    <Column 
-                        body={modalDeleteButtonTemplate} 
-                        exportable={false} 
-                        style={{ width: '5%', minWidth: '4rem' }} 
-                        headerStyle={{ textAlign: 'center' }} 
-                        bodyStyle={{ textAlign: 'center' }}
-                    />
+                    {Object.keys(modalEditingRows).length > 0 && (
+                        <Column 
+                            body={modalDeleteButtonTemplate} 
+                            exportable={false} 
+                            style={{ width: '5%', minWidth: '4rem' }} 
+                            headerStyle={{ textAlign: 'center' }} 
+                            bodyStyle={{ textAlign: 'center' }}
+                        />
+                    )}
                     {isEditMode && (
                         <Column
                             header="Editable"

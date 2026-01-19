@@ -36,6 +36,7 @@ async function initDatabase() {
                 quantity INTEGER DEFAULT 0,
                 inventory_status VARCHAR(50),
                 rating INTEGER,
+                shift VARCHAR(50),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);

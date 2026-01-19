@@ -1,4 +1,9 @@
 /* Global table styling - FORCE CENTER */
+body {
+    transition: opacity 0.1s ease !important;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+}
+
 .p-datatable .p-datatable-thead > tr > th,
 .p-datatable-thead > tr > th,
 .p-column-header-content,
@@ -17,18 +22,34 @@ td {
 /* Adjust row height */
 .p-datatable .p-datatable-tbody > tr > td {
     padding: 0.75rem !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-size: 0.875rem !important; /* 14px - smaller text */
+    font-weight: 500 !important; /* semi-bold */
+}
+
+/* Smooth transition for cells in editing row */
+.p-datatable .p-datatable-tbody > tr.p-row-editing > td {
+    padding: 0.5rem !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Apply same styling to modal table rows */
+.p-dialog .p-datatable .p-datatable-tbody > tr > td {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
 }
 
 /* Smooth transition for row when entering edit mode */
 .p-datatable .p-datatable-tbody > tr {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Add subtle highlight to row in edit mode */
 .p-datatable .p-datatable-tbody > tr.p-row-editing {
-    background: rgba(33, 150, 243, 0.03) !important;
-    box-shadow: 0 0 0 1px rgba(33, 150, 243, 0.2) inset !important;
+    background: rgba(33, 150, 243, 0.05) !important;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.3) inset !important;
+    transform: scale(1.002) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .p-datatable .p-datatable-thead > tr > th {
@@ -40,6 +61,17 @@ td {
 .p-datatable .p-inputnumber-input,
 .p-datatable .p-dropdown {
     text-align: center !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    animation: fadeInScale 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Smooth focus transition for inputs */
+.p-datatable .p-inputtext:focus,
+.p-datatable .p-inputnumber-input:focus,
+.p-datatable .p-dropdown:focus {
+    transform: scale(1.02) !important;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Hide dropdown caret icon */
@@ -113,38 +145,63 @@ td {
 }
 
 /* Row Editor Button Styling */
-/* Cancel button - Red */
+/* Edit/Pencil button - Smooth entrance */
+.p-row-editor-init {
+    color: #6b7280 !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    opacity: 1 !important;
+}
+
+.p-row-editor-init:hover {
+    transform: scale(1.15) rotate(15deg) !important;
+    color: #3b82f6 !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Cancel button - Red with smooth transition */
 .p-row-editor-cancel {
     color: #ef4444 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    animation: fadeInScale 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .p-row-editor-cancel:hover {
     color: #dc2626 !important;
-    background: rgba(239, 68, 68, 0.1) !important;
-    transform: scale(1.1) !important;
-}
-
-/* Save button - Grey when disabled (no changes) */
-.p-row-editor-init,
-.p-row-editor-save {
-    color: #6b7280 !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    transform: scale(1.15) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.p-row-editor-init:hover {
-    transform: scale(1.1) rotate(15deg) !important;
+/* Save button - Grey when disabled (no changes) */
+.p-row-editor-save {
+    color: #6b7280 !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    animation: fadeInScale 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Save button - Green when enabled (has changes) */
 .p-row-editor-save:not(.p-disabled) {
     color: #22c55e !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .p-row-editor-save:not(.p-disabled):hover {
     color: #16a34a !important;
-    background: rgba(34, 197, 94, 0.1) !important;
-    transform: scale(1.1) !important;
+    background: rgba(34, 197, 94, 0.15) !important;
+    transform: scale(1.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Fade in and scale animation for edit mode elements */
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 /* Column Customize List */
@@ -1865,4 +1922,62 @@ body.dark .dark\:hover\:bg-neutral-600:hover {
 
 body.dark .dark\:border-neutral-600 {
     border-color: rgb(82 82 82);
+}
+
+
+/* Loading Overlay for Flex Table Modal */
+.modal-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: fadeInOverlay 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    animation: fadeInScale 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-loading-spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+.modal-loading-text {
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.5px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes fadeInOverlay {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }

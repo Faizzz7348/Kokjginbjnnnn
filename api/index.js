@@ -173,11 +173,11 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
     try {
-        const { code, name, description, image, price, category, quantity, inventoryStatus, rating } = req.body;
+        const { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift } = req.body;
         const result = await pool.query(
-            `INSERT INTO products (code, name, description, image, price, category, quantity, inventory_status, rating) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-            [code, name, description, image, price, category, quantity, inventoryStatus, rating]
+            `INSERT INTO products (code, name, description, image, price, category, quantity, inventory_status, rating, shift) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+            [code, name, description, image, price, category, quantity, inventoryStatus, rating, shift]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -189,13 +189,13 @@ app.post('/api/products', async (req, res) => {
 app.put('/api/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { code, name, description, image, price, category, quantity, inventoryStatus, rating } = req.body;
+        const { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift } = req.body;
         const result = await pool.query(
             `UPDATE products 
              SET code = $1, name = $2, description = $3, image = $4, price = $5, 
-                 category = $6, quantity = $7, inventory_status = $8, rating = $9
-             WHERE id = $10 RETURNING *`,
-            [code, name, description, image, price, category, quantity, inventoryStatus, rating, id]
+                 category = $6, quantity = $7, inventory_status = $8, rating = $9, shift = $10
+             WHERE id = $11 RETURNING *`,
+            [code, name, description, image, price, category, quantity, inventoryStatus, rating, shift, id]
         );
         
         if (result.rows.length === 0) {
