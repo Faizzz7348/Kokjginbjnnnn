@@ -300,7 +300,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const statusBodyTemplate = (rowData) => {
-        return rowData.inventoryStatus;
+        // Show Tag component with color based on shift value
+        if (!rowData.inventoryStatus) return null;
+        return <Tag value={rowData.inventoryStatus} severity={getSeverity(rowData.inventoryStatus)}></Tag>;
     };
 
     const priceBodyTemplate = (rowData) => {
@@ -355,7 +357,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         const newRow = {
             code: `PRD${Date.now()}`,
             name: 'New Product',
-            inventoryStatus: 'INSTOCK',
+            inventoryStatus: 'AM', // Default shift to AM
             category: 'New',
             quantity: 0,
             price: 0,
