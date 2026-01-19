@@ -238,6 +238,13 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         try {
             console.log('🔄 Updating product:', newData);
             
+            // Validate ID is valid
+            if (!newData.id || !isFinite(newData.id) || newData.id <= 0) {
+                console.error('❌ Invalid product ID:', newData.id);
+                alert('❌ Invalid product ID. Cannot save changes.');
+                return;
+            }
+            
             // Ensure inventoryStatus (shift) is included in the update
             const dataToUpdate = {
                 ...newData,
@@ -496,6 +503,13 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             return;
         }
         
+        // Validate ID is valid before saving
+        if (!newData.id || !isFinite(newData.id) || newData.id <= 0) {
+            console.error('❌ Invalid modal product ID:', newData.id);
+            alert('❌ Invalid product ID. Cannot save changes.');
+            return;
+        }
+        
         // Save to database
         try {
             console.log('🔄 Updating modal product:', newData);
@@ -547,8 +561,13 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const addModalRow = () => {
+        // Get max ID safely, default to 0 if no products exist
+        const maxId = modalProducts && modalProducts.length > 0 
+            ? Math.max(...modalProducts.map(p => (p.id && isFinite(p.id)) ? p.id : 0))
+            : 0;
+        
         const newRow = {
-            id: Math.max(...(modalProducts || []).map(p => p.id || 0)) + 1,
+            id: maxId + 1,
             code: '',
             location: '',
             inventoryStatus: 'Daily'
