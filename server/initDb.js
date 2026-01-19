@@ -37,6 +37,15 @@ async function initDatabase() {
                 inventory_status VARCHAR(50),
                 rating INTEGER,
                 shift VARCHAR(50),
+                location VARCHAR(500),
+                latitude VARCHAR(50),
+                longitude VARCHAR(50),
+                address TEXT,
+                operating_hours VARCHAR(255),
+                machine_type VARCHAR(255),
+                payment_methods VARCHAR(255),
+                last_maintenance VARCHAR(255),
+                status VARCHAR(100),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);

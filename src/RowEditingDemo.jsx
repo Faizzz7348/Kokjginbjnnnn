@@ -238,9 +238,15 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         try {
             console.log('🔄 Updating product:', newData);
             
+            // Ensure inventoryStatus (shift) is included in the update
+            const dataToUpdate = {
+                ...newData,
+                inventoryStatus: newData.inventoryStatus || 'AM'
+            };
+            
             // Call API to update product in database
             if (newData.id) {
-                const updatedProduct = await ProductService.updateProduct(newData.id, newData);
+                const updatedProduct = await ProductService.updateProduct(newData.id, dataToUpdate);
                 console.log('✅ Product updated successfully:', updatedProduct);
                 
                 // Use the response from API
@@ -444,7 +450,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         setShowFlexTableModal(true);
     };
 
-    const onModalRowEditComplete = (e) => {
+    const onModalRowEditComplete = async (e) => {
         let _products = [...modalProducts];
         let { newData, index, originalEvent } = e;
         
@@ -490,7 +496,21 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             return;
         }
         
-        _products[index] = newData;
+        // Save to database
+        try {
+            console.log('🔄 Updating modal product:', newData);
+            
+            if (newData.id) {
+                const updatedProduct = await ProductService.updateProduct(newData.id, newData);
+                console.log('✅ Modal product updated successfully:', updatedProduct);
+                _products[index] = updatedProduct;
+            }
+        } catch (error) {
+            console.error('❌ Failed to update modal product:', error);
+            alert('❌ Failed to save changes: ' + error.message);
+            return;
+        }
+        
         setModalProducts(_products);
         
         // Mark modal row as pre-saved for this specific main row
@@ -1100,11 +1120,37 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         setInfoModalVisible(true);
     };
 
-    const updateLocationInfo = (field, value) => {
-        setSelectedLocationInfo(prev => ({
-            ...prev,
+    const updateLocationInfo = async (field, value) => {
+        // Update local state
+        const updatedInfo = {
+            ...selectedLocationInfo,
             [field]: value
-        }));
+        };
+        setSelectedLocationInfo(updatedInfo);
+        
+        // Save to database if in edit mode
+        if (isEditMode && selectedLocationInfo.id) {
+            try {
+                // Update in modalProducts if this is from modal
+                const updatedModalProducts = modalProducts.map(p => {
+                    if (p.id === selectedLocationInfo.id) {
+                        return { ...p, [field]: value };
+                    }
+                    return p;
+                });
+                setModalProducts(updatedModalProducts);
+                setFilteredModalProducts(updatedModalProducts);
+                
+                // Also update in database
+                await ProductService.updateProduct(selectedLocationInfo.id, {
+                    id: selectedLocationInfo.id,
+                    [field]: value
+                });
+                console.log(`✅ ${field} updated successfully`);
+            } catch (error) {
+                console.error(`❌ Failed to update ${field}:`, error);
+            }
+        }
     };
 
     const togglePin = (rowData) => {
