@@ -1336,7 +1336,16 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     dataKey="id" 
                     onRowEditComplete={onRowEditComplete} 
                     editingRows={editingRows} 
-                    onRowEditChange={(e) => setEditingRows(e.data)} 
+                    onRowEditChange={(e) => {
+                        // Only allow one row to be edited at a time
+                        const rowIds = Object.keys(e.data);
+                        if (rowIds.length > 0) {
+                            const lastRowId = rowIds[rowIds.length - 1];
+                            setEditingRows({ [lastRowId]: true });
+                        } else {
+                            setEditingRows({});
+                        }
+                    }} 
                     tableStyle={{ minWidth: '50rem' }} 
                     scrollable 
                     scrollHeight="450px" 
@@ -1416,7 +1425,16 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     dataKey="id"
                     onRowEditComplete={onModalRowEditComplete}
                     editingRows={modalEditingRows}
-                    onRowEditChange={(e) => setModalEditingRows(e.data)}
+                    onRowEditChange={(e) => {
+                        // Only allow one row to be edited at a time in modal
+                        const rowIds = Object.keys(e.data);
+                        if (rowIds.length > 0) {
+                            const lastRowId = rowIds[rowIds.length - 1];
+                            setModalEditingRows({ [lastRowId]: true });
+                        } else {
+                            setModalEditingRows({});
+                        }
+                    }}
                     rowClassName={modalRowClassName}
                 >
                     <Column
