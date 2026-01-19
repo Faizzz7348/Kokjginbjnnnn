@@ -95,7 +95,10 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     ];
 
     useEffect(() => {
-        ProductService.getProductsMini().then((data) => setProducts(data));
+        ProductService.getProductsMini().then((data) => {
+            setProducts(data);
+            setSavedProducts(data); // Also set as saved state
+        });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
@@ -228,18 +231,35 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         }
     };
 
-    const onRowEditComplete = (e) => {
+    const onRowEditComplete = async (e) => {
         let _products = [...products];
         let { newData, index } = e;
 
-        _products[index] = newData;
-        setProducts(_products);
-        
-        // Mark row as pre-saved (modified but not finally saved)
-        setPreSavedRows(prev => ({
-            ...prev,
-            [newData.id]: true
-        }));
+        try {
+            console.log('🔄 Updating product:', newData);
+            
+            // Call API to update product in database
+            if (newData.id) {
+                const updatedProduct = await ProductService.updateProduct(newData.id, newData);
+                console.log('✅ Product updated successfully:', updatedProduct);
+                
+                // Use the response from API
+                _products[index] = updatedProduct;
+            }
+
+            setProducts(_products);
+            
+            // Mark row as pre-saved (modified but not finally saved)
+            setPreSavedRows(prev => ({
+                ...prev,
+                [newData.id]: true
+            }));
+            
+            alert('✅ Product saved to database!');
+        } catch (error) {
+            console.error('❌ Failed to update product:', error);
+            alert('❌ Failed to save changes: ' + error.message);
+        }
     };
 
     const textEditor = (options) => {
@@ -292,8 +312,12 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const saveAll = () => {
-        // Save current products state
-        setSavedProducts([...products]);
+        // Refresh data from database to ensure we have latest
+        ProductService.getProductsMini().then((data) => {
+            setProducts(data);
+            setSavedProducts(data);
+        });
+        
         // Clear all editing rows
         setEditingRows({});
         setModalEditingRows({});
@@ -302,12 +326,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         setModalPreSavedRows({});
         // Clear badge counts
         setRowChangesCounts({});
-        // Save modal data permanently
-        console.log('Saving all data:', {
-            mainTable: products,
-            modalData: rowModalData
-        });
-        // You can add API call here to save to backend
+        
+        console.log('All changes saved successfully!');
         alert('All changes saved successfully!');
     };
 
@@ -331,17 +351,31 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         setRowModalData({});
     };
 
-    const addRow = () => {
+    const addRow = async () => {
         const newRow = {
-            id: Math.max(...(products || []).map(p => p.id || 0)) + 1,
-            code: '',
-            name: '',
-            inventoryStatus: 'AM',
+            code: `PRD${Date.now()}`,
+            name: 'New Product',
+            inventoryStatus: 'INSTOCK',
             category: 'New',
             quantity: 0,
-            price: 0
+            price: 0,
+            description: 'New product description',
+            rating: 0
         };
-        setProducts([...(products || []), newRow]);
+
+        try {
+            console.log('🆕 Creating new product:', newRow);
+            
+            // Call API to create product in database
+            const createdProduct = await ProductService.createProduct(newRow);
+            console.log('✅ Product created successfully:', createdProduct);
+            
+            setProducts([...(products || []), createdProduct]);
+            alert('✅ New product added to database!');
+        } catch (error) {
+            console.error('❌ Failed to create product:', error);
+            alert('❌ Failed to add new product: ' + error.message);
+        }
     };
 
     const confirmDelete = (rowData) => {
@@ -350,9 +384,21 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             header: 'Delete Confirmation',
             icon: 'pi pi-exclamation-triangle',
             acceptClassName: 'p-button-danger',
-            accept: () => {
-                const _products = products.filter(p => p.id !== rowData.id);
-                setProducts(_products);
+            accept: async () => {
+                try {
+                    console.log('🗑️ Deleting product:', rowData.id);
+                    
+                    // Call API to delete product from database
+                    await ProductService.deleteProduct(rowData.id);
+                    console.log('✅ Product deleted successfully');
+                    
+                    const _products = products.filter(p => p.id !== rowData.id);
+                    setProducts(_products);
+                    alert('✅ Product deleted from database!');
+                } catch (error) {
+                    console.error('❌ Failed to delete product:', error);
+                    alert('❌ Failed to delete product: ' + error.message);
+                }
             }
         });
     };

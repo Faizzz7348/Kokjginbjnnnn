@@ -21,6 +21,18 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'Server is running' });
 });
 
-app.listen(PORT, () => {
+// Error handler untuk port already in use
+const server = app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📡 API ready at http://localhost:${PORT}/api`);
+    console.log(`💚 Health check: http://localhost:${PORT}/api/health`);
+}).on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Error: Port ${PORT} is already in use!`);
+        console.error(`💡 Solution: Run "npm run dev:clean" to fix port conflicts`);
+        process.exit(1);
+    } else {
+        console.error('❌ Server error:', err);
+        process.exit(1);
+    }
 });

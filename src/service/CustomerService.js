@@ -17,6 +17,59 @@ export const CustomerService = {
         }
     },
 
+    async createCustomer(customer) {
+        try {
+            const response = await fetch(`${API_URL}/customers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(customer),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to create customer');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating customer:', error);
+            throw error;
+        }
+    },
+
+    async updateCustomer(id, customer) {
+        try {
+            const response = await fetch(`${API_URL}/customers/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(customer),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update customer');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating customer:', error);
+            throw error;
+        }
+    },
+
+    async deleteCustomer(id) {
+        try {
+            const response = await fetch(`${API_URL}/customers/${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete customer');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+            throw error;
+        }
+    },
+
     getMockCustomers() {
         return [
             {

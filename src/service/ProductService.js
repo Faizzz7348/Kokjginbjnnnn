@@ -26,6 +26,59 @@ export const ProductService = {
         }
     },
 
+    async createProduct(product) {
+        try {
+            const response = await fetch(`${API_URL}/products`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(product),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to create product');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error creating product:', error);
+            throw error;
+        }
+    },
+
+    async updateProduct(id, product) {
+        try {
+            const response = await fetch(`${API_URL}/products/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(product),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to update product');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating product:', error);
+            throw error;
+        }
+    },
+
+    async deleteProduct(id) {
+        try {
+            const response = await fetch(`${API_URL}/products/${id}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete product');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            throw error;
+        }
+    },
+
     getMockProducts() {
         return [
             {

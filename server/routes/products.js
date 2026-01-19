@@ -6,7 +6,12 @@ const pool = require('../db');
 router.get('/', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM products ORDER BY id');
-        res.json(result.rows);
+        // Map snake_case to camelCase for frontend
+        const products = result.rows.map(row => ({
+            ...row,
+            inventoryStatus: row.inventory_status
+        }));
+        res.json(products);
     } catch (error) {
         console.error('Error fetching products:', error);
         res.status(500).json({ error: 'Failed to fetch products' });
@@ -23,7 +28,11 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Product not found' });
         }
         
-        res.json(result.rows[0]);
+        const product = {
+            ...result.rows[0],
+            inventoryStatus: result.rows[0].inventory_status
+        };
+        res.json(product);
     } catch (error) {
         console.error('Error fetching product:', error);
         res.status(500).json({ error: 'Failed to fetch product' });
@@ -41,7 +50,11 @@ router.post('/', async (req, res) => {
             [code, name, description, image, price, category, quantity, inventoryStatus, rating]
         );
         
-        res.status(201).json(result.rows[0]);
+        const product = {
+            ...result.rows[0],
+            inventoryStatus: result.rows[0].inventory_status
+        };
+        res.status(201).json(product);
     } catch (error) {
         console.error('Error creating product:', error);
         res.status(500).json({ error: 'Failed to create product' });
@@ -66,7 +79,11 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ error: 'Product not found' });
         }
         
-        res.json(result.rows[0]);
+        const product = {
+            ...result.rows[0],
+            inventoryStatus: result.rows[0].inventory_status
+        };
+        res.json(product);
     } catch (error) {
         console.error('Error updating product:', error);
         res.status(500).json({ error: 'Failed to update product' });

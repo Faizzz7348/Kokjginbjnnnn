@@ -8,6 +8,7 @@
     "preview": "vite preview",
     "server": "node server/index.js",
     "init-db": "node server/initDb.js",
+    "check-db": "node server/checkDb.js",
     "dev": "concurrently \"npm run server\" \"npm run start\"",
     "vercel-build": "vite build"
   },
