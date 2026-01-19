@@ -55,11 +55,6 @@ export const ProductService = {
 
     async updateProduct(id, product) {
         try {
-            // Validate required fields
-            if (!product.name || product.name.trim() === '') {
-                throw new Error('Product name is required');
-            }
-            
             // Sanitize product data to prevent -Infinity errors
             const sanitizedProduct = {
                 ...product,

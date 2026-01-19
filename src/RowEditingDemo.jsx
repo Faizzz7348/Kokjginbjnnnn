@@ -494,20 +494,15 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             });
         });
         
-        // Check if the new code is a duplicate
+        // Check if the new code is a duplicate (warning only, allow save)
         const newCode = newData.code?.trim().toLowerCase();
         if (newCode && allExistingCodes.includes(newCode)) {
-            // Prevent save by rejecting the edit
-            originalEvent.preventDefault();
-            alert(`⚠️ Duplicate Code Detected!\n\nThe code "${newData.code}" already exists in another flex table.\nPlease use a unique code across all tables.`);
-            return;
-        }
-        
-        // Validate ID is valid before saving
-        if (!newData.id || !isFinite(newData.id) || newData.id <= 0) {
-            console.error('❌ Invalid modal product ID:', newData.id);
-            alert('❌ Invalid product ID. Cannot save changes.');
-            return;
+            console.warn(`⚠️ Duplicate code detected: ${newData.code}`);
+            // Allow save but show warning
+            if (!confirm(`⚠️ Warning: The code "${newData.code}" already exists in another flex table.\n\nDo you want to save anyway?`)) {
+                originalEvent.preventDefault();
+                return;
+            }
         }
         
         // Save to database
@@ -560,21 +555,33 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         setIsModalMaximized(!isModalMaximized);
     };
 
-    const addModalRow = () => {
-        // Get max ID safely, default to 0 if no products exist
-        const maxId = modalProducts && modalProducts.length > 0 
-            ? Math.max(...modalProducts.map(p => (p.id && isFinite(p.id)) ? p.id : 0))
-            : 0;
-        
-        const newRow = {
-            id: maxId + 1,
-            code: '',
-            location: '',
-            inventoryStatus: 'Daily'
-        };
-        const updatedProducts = [...(modalProducts || []), newRow];
-        setModalProducts(updatedProducts);
-        setFilteredModalProducts(updatedProducts);
+    const addModalRow = async () => {
+        try {
+            const newRow = {
+                code: `FLEX-${Date.now()}`,
+                name: `Product ${Date.now()}`,
+                location: '',
+                inventoryStatus: 'AM',
+                category: 'New',
+                quantity: 0,
+                price: 0
+            };
+            
+            console.log('🆕 Creating new flex table product:', newRow);
+            
+            // Call API to create product in database
+            const createdProduct = await ProductService.createProduct(newRow);
+            console.log('✅ Flex product created with ID:', createdProduct.id);
+            
+            const updatedProducts = [...(modalProducts || []), createdProduct];
+            setModalProducts(updatedProducts);
+            setFilteredModalProducts(updatedProducts);
+            
+            alert('✅ New row created! You can now edit it.');
+        } catch (error) {
+            console.error('❌ Failed to create flex product:', error);
+            alert('❌ Failed to create new row: ' + error.message);
+        }
     };
 
     const menuItems = [
