@@ -1211,8 +1211,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         icon="pi pi-list"
                         text
                         onClick={() => onOpenFlexTableModal(rowData)}
-                        tooltip="Open Flex Table"
-                        tooltipOptions={{ position: 'bottom' }}
                     />
                     {changesCount > 0 && (
                         <Badge 
@@ -1363,7 +1361,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     editMode="row" 
                     dataKey="id" 
                     onRowEditComplete={onRowEditComplete} 
-                    editingRows={editingRows} 
+                    editingRows={editingRows}
+                    autoLayout 
                     onRowEditChange={(e) => {
                         // Only allow one row to be edited at a time
                         const rowIds = Object.keys(e.data);
@@ -1379,11 +1378,11 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     scrollHeight="450px" 
                     rowClassName={rowClassName}
                 >
-                <Column field="code" header="Route" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column field="name" header="Warehouse" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '25%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={isEditMode ? (options) => shiftEditor(options) : null} style={{ width: '20%' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column header="Action" body={actionBodyTemplate} exportable={false} style={{ width: '10%', minWidth: '8rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                {Object.keys(editingRows).length > 0 && <Column body={deleteButtonTemplate} exportable={false} style={{ width: '5%', minWidth: '4rem' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
+                <Column field="code" header="Route" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '200px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column field="name" header="Warehouse" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '250px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={isEditMode ? (options) => shiftEditor(options) : null} style={{ width: '120px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} exportable={false} style={{ width: '150px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                {Object.keys(editingRows).length > 0 && <Column body={deleteButtonTemplate} exportable={false} style={{ width: '80px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
                 {isEditMode && <Column rowEditor={allowEdit} header="Editable" headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
             </DataTable>
             </div>
@@ -1451,6 +1450,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     tableStyle={{ minWidth: '50rem' }}
                     editMode="row"
                     dataKey="id"
+                    autoLayout
                     onRowEditComplete={onModalRowEditComplete}
                     editingRows={modalEditingRows}
                     onRowEditChange={(e) => {

@@ -8,6 +8,10 @@
     />
     <title>PrimeReact Dark Mode Demo</title>
     
+    <!-- Speed up CDN loading -->
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    
     <!-- Load dark theme by default -->
     <link id="theme-link" rel="stylesheet" href="https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css">
     
@@ -16,8 +20,8 @@
     <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     
-    <!-- Prefetch light theme in background for quick switch -->
-    <link rel="prefetch" href="https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css">
+    <!-- Preload light theme for instant switch -->
+    <link rel="preload" as="style" href="https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css">
     
     <style>
         /* Prevent flash of unstyled content */
