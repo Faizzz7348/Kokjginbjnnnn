@@ -228,6 +228,12 @@ app.post('/api/products', async (req, res) => {
 app.put('/api/products/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        
+        // Validate ID is a valid integer
+        if (!id || !isFinite(parseInt(id)) || parseInt(id) <= 0) {
+            return res.status(400).json({ error: 'Invalid product ID' });
+        }
+        
         const { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
                 location, latitude, longitude, address, operatingHours, machineType, paymentMethods,
                 lastMaintenance, status } = req.body;
@@ -246,7 +252,7 @@ app.put('/api/products/:id', async (req, res) => {
              WHERE id = $20 RETURNING *`,
             [code, name, description, image, safePrice, category, safeQuantity, inventoryStatus, safeRating, shift,
              location, latitude, longitude, address, operatingHours, machineType, paymentMethods,
-             lastMaintenance, status, id]
+             lastMaintenance, status, parseInt(id)]
         );
         
         if (result.rows.length === 0) {

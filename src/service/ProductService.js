@@ -28,12 +28,20 @@ export const ProductService = {
 
     async createProduct(product) {
         try {
+            // Sanitize product data to prevent -Infinity errors
+            const sanitizedProduct = {
+                ...product,
+                rating: (product.rating === undefined || product.rating === null || !isFinite(product.rating)) ? null : product.rating,
+                quantity: (product.quantity === undefined || product.quantity === null || !isFinite(product.quantity)) ? 0 : product.quantity,
+                price: (product.price === undefined || product.price === null || !isFinite(product.price)) ? 0 : product.price
+            };
+            
             const response = await fetch(`${API_URL}/products`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(product),
+                body: JSON.stringify(sanitizedProduct),
             });
             if (!response.ok) {
                 throw new Error('Failed to create product');
@@ -47,12 +55,21 @@ export const ProductService = {
 
     async updateProduct(id, product) {
         try {
+            // Sanitize product data to prevent -Infinity errors
+            const sanitizedProduct = {
+                ...product,
+                rating: (product.rating === undefined || product.rating === null || !isFinite(product.rating)) ? null : product.rating,
+                quantity: (product.quantity === undefined || product.quantity === null || !isFinite(product.quantity)) ? 0 : product.quantity,
+                price: (product.price === undefined || product.price === null || !isFinite(product.price)) ? 0 : product.price,
+                id: isFinite(product.id) ? product.id : id // Ensure id is valid
+            };
+            
             const response = await fetch(`${API_URL}/products/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(product),
+                body: JSON.stringify(sanitizedProduct),
             });
             if (!response.ok) {
                 throw new Error('Failed to update product');
