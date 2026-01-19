@@ -9,8 +9,13 @@ app.use(cors());
 app.use(express.json());
 
 // Database connection
+const connectionString = process.env.DATABASE_URL;
+const connectionConfig = connectionString.includes('?') 
+    ? `${connectionString}&sslmode=verify-full`
+    : `${connectionString}?sslmode=verify-full`;
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: connectionConfig,
     ssl: {
         rejectUnauthorized: false
     }
@@ -191,9 +196,14 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
     try {
-        const { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
+        let { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
                 location, latitude, longitude, address, operatingHours, machineType, paymentMethods,
                 lastMaintenance, status } = req.body;
+        
+        // Auto-generate name if empty
+        if (!name || name.trim() === '') {
+            name = `Product-${Date.now()}`;
+        }
         
         // Handle null/undefined values for integer fields
         const safeRating = (rating === undefined || rating === null || !isFinite(rating)) ? null : rating;
@@ -234,13 +244,13 @@ app.put('/api/products/:id', async (req, res) => {
             return res.status(400).json({ error: 'Invalid product ID' });
         }
         
-        const { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
+        let { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
                 location, latitude, longitude, address, operatingHours, machineType, paymentMethods,
                 lastMaintenance, status } = req.body;
         
-        // Validate required fields
+        // Auto-generate name if empty
         if (!name || name.trim() === '') {
-            return res.status(400).json({ error: 'Product name is required' });
+            name = `Product-${id}-${Date.now()}`;
         }
         
         // Handle null/undefined values for integer fields to prevent -Infinity error
