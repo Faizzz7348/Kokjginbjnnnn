@@ -1,8 +1,14 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Parse the connection string and add explicit SSL mode
+const connectionString = process.env.DATABASE_URL;
+const connectionConfig = connectionString.includes('?') 
+    ? `${connectionString}&sslmode=verify-full`
+    : `${connectionString}?sslmode=verify-full`;
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: connectionConfig,
     ssl: {
         rejectUnauthorized: false
     },
