@@ -2,25 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+    />
     <title>PrimeReact Dark Mode Demo</title>
-    
-    <!-- Preload BOTH themes for instant switching -->
-    <link rel="preload" href="https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css" as="style">
-    <link rel="preload" href="https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css" as="style">
-    <link rel="preload" href="https://unpkg.com/primereact/resources/primereact.min.css" as="style">
-    <link rel="preload" href="https://unpkg.com/primeicons/primeicons.css" as="style">
-    <link rel="preload" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" as="style">
     
     <!-- Load dark theme by default -->
     <link id="theme-link" rel="stylesheet" href="https://unpkg.com/primereact/resources/themes/lara-dark-blue/theme.css">
-    <!-- Prefetch light theme in background for instant switch -->
-    <link id="theme-light-prefetch" rel="prefetch" href="https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css">
     
     <!-- Load other CSS -->
     <link rel="stylesheet" href="https://unpkg.com/primereact/resources/primereact.min.css">
     <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    
+    <!-- Prefetch light theme in background for quick switch -->
+    <link rel="prefetch" href="https://unpkg.com/primereact/resources/themes/lara-light-blue/theme.css">
     
     <style>
         /* Prevent flash of unstyled content */

@@ -26,6 +26,19 @@ export const ProductService = {
         }
     },
 
+    async getProductsByParent(parentId) {
+        try {
+            const response = await fetch(`${API_URL}/products/parent/${parentId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch flex products');
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching flex products:', error);
+            return [];
+        }
+    },
+
     async createProduct(product) {
         try {
             // Sanitize product data to prevent -Infinity errors

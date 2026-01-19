@@ -428,32 +428,26 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         });
     };
 
-    const onOpenFlexTableModal = (rowData) => {
+    const onOpenFlexTableModal = async (rowData) => {
         // Store selected row data
         setSelectedRow(rowData);
         // Reset current modal changes counter
         setCurrentModalChanges(0);
         
-        // Check if this row already has modal data saved
-        if (rowModalData[rowData.id]) {
-            // Load existing modal data for this row
-            setModalProducts(rowModalData[rowData.id]);
-            setFilteredModalProducts(rowModalData[rowData.id]);
-        } else {
-            // Load products for modal and filter based on selected row
-            ProductService.getProductsMini().then((data) => {
-                // Filter data based on the selected row's code
-                const filteredData = data.filter((product) => {
-                    if (rowData.code && product.category) {
-                        return product.category.toLowerCase().includes(rowData.code.charAt(0).toLowerCase());
-                    }
-                    return true;
-                });
-                
-                setModalProducts(filteredData);
-                setFilteredModalProducts(filteredData);
-            });
+        try {
+            // Load flex table products from database by parent ID
+            console.log('📂 Loading flex products for parent:', rowData.id);
+            const flexProducts = await ProductService.getProductsByParent(rowData.id);
+            console.log('✅ Loaded', flexProducts.length, 'flex products');
+            
+            setModalProducts(flexProducts);
+            setFilteredModalProducts(flexProducts);
+        } catch (error) {
+            console.error('❌ Failed to load flex products:', error);
+            setModalProducts([]);
+            setFilteredModalProducts([]);
         }
+        
         setShowFlexTableModal(true);
     };
 
@@ -557,17 +551,24 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     const addModalRow = async () => {
         try {
+            // Ensure we have a selected row
+            if (!selectedRow || !selectedRow.id) {
+                alert('⚠️ Error: No main row selected');
+                return;
+            }
+            
             const newRow = {
                 code: `FLEX-${Date.now()}`,
                 name: `Product ${Date.now()}`,
                 location: '',
                 inventoryStatus: 'AM',
-                category: 'New',
+                category: 'Flex',
                 quantity: 0,
-                price: 0
+                price: 0,
+                parentId: selectedRow.id  // Link to main table row!
             };
             
-            console.log('🆕 Creating new flex table product:', newRow);
+            console.log('🆕 Creating new flex table product for parent:', selectedRow.id);
             
             // Call API to create product in database
             const createdProduct = await ProductService.createProduct(newRow);
@@ -1252,25 +1253,45 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         const isRowBeingEdited = modalEditingRows[rowData.id] !== undefined;
 
         const handlePowerClick = () => {
-            setSelectedPowerRow(rowData);
-            setPowerModalVisible(true);
+            // Only allow configuration in edit mode
+            if (isRowBeingEdited) {
+                setSelectedPowerRow(rowData);
+                setPowerModalVisible(true);
+            }
+        };
+
+        // Determine button color based on powerMode status
+        const getPowerButtonColor = () => {
+            if (rowData.powerMode === undefined || rowData.powerMode === null) {
+                return '#94a3b8'; // Grey for default/not set
+            }
+            return rowData.powerMode === 'on' ? '#22c55e' : '#ef4444'; // Green for ON, Red for OFF
+        };
+
+        const getPowerTooltip = () => {
+            if (isRowBeingEdited) {
+                return 'Configure Power Mode';
+            }
+            if (rowData.powerMode === undefined || rowData.powerMode === null) {
+                return 'Power Mode: Not Set';
+            }
+            return `Power Mode: ${rowData.powerMode === 'on' ? 'ON' : 'OFF'}`;
         };
 
         return (
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
-                {isRowBeingEdited && (
-                    <Button
-                        icon="pi pi-power-off"
-                        text
-                        onClick={handlePowerClick}
-                        tooltip="Configure Power Mode"
-                        tooltipOptions={{ position: 'top' }}
-                        style={{ 
-                            color: rowData.powerMode ? '#22c55e' : '#94a3b8',
-                            cursor: 'pointer'
-                        }}
-                    />
-                )}
+                <Button
+                    icon="pi pi-power-off"
+                    text
+                    onClick={handlePowerClick}
+                    tooltip={getPowerTooltip()}
+                    tooltipOptions={{ position: 'top' }}
+                    style={{ 
+                        color: getPowerButtonColor(),
+                        cursor: isRowBeingEdited ? 'pointer' : 'default',
+                        opacity: isRowBeingEdited ? 1 : 0.8
+                    }}
+                />
                 <Button
                     icon="pi pi-info-circle"
                     text

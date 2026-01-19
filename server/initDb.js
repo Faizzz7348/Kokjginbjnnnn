@@ -46,6 +46,7 @@ async function initDatabase() {
                 payment_methods VARCHAR(255),
                 last_maintenance VARCHAR(255),
                 status VARCHAR(100),
+                parent_id INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
