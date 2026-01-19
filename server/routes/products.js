@@ -50,13 +50,13 @@ router.get('/:id', async (req, res) => {
 // POST create product
 router.post('/', async (req, res) => {
     try {
-        const { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift, 
+        let { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift, 
                 location, latitude, longitude, address, operatingHours, machineType, paymentMethods, 
                 lastMaintenance, status } = req.body;
         
-        // Validate required fields
+        // Auto-generate name if empty
         if (!name || name.trim() === '') {
-            return res.status(400).json({ error: 'Product name is required' });
+            name = `Product-${Date.now()}`;
         }
         
         const result = await pool.query(
@@ -77,19 +77,24 @@ router.post('/', async (req, res) => {
             paymentMethods: result.rows[0].payment_methods,
             lastMaintenance: result.rows[0].last_maintenance
         };
-        res.status(201).json(product);\n    } catch (error) {\n        console.error('Error creating product:', error);\n        res.status(500).json({ error: 'Failed to create product' });\n    }\n});
+        res.status(201).json(product);
+    } catch (error) {
+        console.error('Error creating product:', error);
+        res.status(500).json({ error: 'Failed to create product' });
+    }
+});
 
 // PUT update product
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
+        let { code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
                 location, latitude, longitude, address, operatingHours, machineType, paymentMethods, 
                 lastMaintenance, status } = req.body;
         
-        // Validate required fields
+        // Auto-generate name if empty
         if (!name || name.trim() === '') {
-            return res.status(400).json({ error: 'Product name is required' });
+            name = `Product-${id}-${Date.now()}`;
         }
         
         const result = await pool.query(
@@ -102,7 +107,8 @@ router.put('/:id', async (req, res) => {
             [code, name, description, image, price, category, quantity, inventoryStatus, rating, shift,
              location, latitude, longitude, address, operatingHours, machineType, paymentMethods, 
              lastMaintenance, status, id]
-        );\n        
+        );
+        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });
         }
@@ -115,7 +121,12 @@ router.put('/:id', async (req, res) => {
             paymentMethods: result.rows[0].payment_methods,
             lastMaintenance: result.rows[0].last_maintenance
         };
-        res.json(product);\n    } catch (error) {\n        console.error('Error updating product:', error);\n        res.status(500).json({ error: 'Failed to update product' });\n    }\n});
+        res.json(product);
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ error: 'Failed to update product' });
+    }
+});
 
 // DELETE product
 router.delete('/:id', async (req, res) => {

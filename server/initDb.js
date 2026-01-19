@@ -27,7 +27,7 @@ async function initDatabase() {
         await pool.query(`
             CREATE TABLE products (
                 id SERIAL PRIMARY KEY,
-                code VARCHAR(100) UNIQUE NOT NULL,
+                code VARCHAR(100),
                 name VARCHAR(255) NOT NULL,
                 description TEXT,
                 image VARCHAR(255),
