@@ -11,15 +11,6 @@ export default defineConfig({
     host: true // Expose to all network interfaces
   },
   build: {
-    cssCodeSplit: false, // Bundle all CSS together for faster loading
-    minify: 'esbuild', // Use esbuild for faster builds
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'primereact': ['primereact'],
-          'react-vendor': ['react', 'react-dom']
-        }
-      }
-    }
+    minify: 'esbuild'
   }
 })
