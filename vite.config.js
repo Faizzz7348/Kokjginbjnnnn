@@ -12,12 +12,7 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: false, // Bundle all CSS together for faster loading
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console logs in production
-      }
-    },
+    minify: 'esbuild', // Use esbuild for faster builds
     rollupOptions: {
       output: {
         manualChunks: {
