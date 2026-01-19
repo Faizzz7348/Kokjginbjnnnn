@@ -238,6 +238,11 @@ app.put('/api/products/:id', async (req, res) => {
                 location, latitude, longitude, address, operatingHours, machineType, paymentMethods,
                 lastMaintenance, status } = req.body;
         
+        // Validate required fields
+        if (!name || name.trim() === '') {
+            return res.status(400).json({ error: 'Product name is required' });
+        }
+        
         // Handle null/undefined values for integer fields to prevent -Infinity error
         const safeRating = (rating === undefined || rating === null || !isFinite(rating)) ? null : rating;
         const safeQuantity = (quantity === undefined || quantity === null || !isFinite(quantity)) ? 0 : quantity;
