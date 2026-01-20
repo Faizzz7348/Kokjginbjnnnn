@@ -1315,7 +1315,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     const rowEditorTemplate = (rowData) => {
         const isEditing = editingRows[rowData.id] !== undefined;
-        const hasChanges = rowHasChanges[rowData.id];
 
         if (isEditing) {
             return (
@@ -1325,8 +1324,14 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         rounded
                         text
                         onClick={async () => {
-                            // Manually trigger save
-                            await onRowEditComplete({ newData: rowData, index: products.findIndex(p => p.id === rowData.id) });
+                            // Get the latest data from products array (includes edits)
+                            const currentData = products.find(p => p.id === rowData.id);
+                            if (currentData) {
+                                await onRowEditComplete({ 
+                                    newData: currentData, 
+                                    index: products.findIndex(p => p.id === rowData.id) 
+                                });
+                            }
                             setEditingRows({});
                         }}
                         severity="success"
@@ -1369,7 +1374,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     const modalRowEditorTemplate = (rowData) => {
         const isEditing = modalEditingRows[rowData.id] !== undefined;
-        const hasChanges = modalRowHasChanges[rowData.id] || false;
 
         if (isEditing) {
             return (
@@ -1379,8 +1383,14 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         rounded
                         text
                         onClick={async () => {
-                            // Manually trigger save
-                            await onModalRowEditComplete({ newData: rowData, index: modalProducts.findIndex(p => p.id === rowData.id) });
+                            // Get the latest data from modalProducts array (includes edits)
+                            const currentData = modalProducts.find(p => p.id === rowData.id);
+                            if (currentData) {
+                                await onModalRowEditComplete({ 
+                                    newData: currentData, 
+                                    index: modalProducts.findIndex(p => p.id === rowData.id) 
+                                });
+                            }
                             setModalEditingRows({});
                         }}
                         severity="success"
