@@ -306,9 +306,15 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 type="text" 
                 value={options.value} 
                 onChange={(e) => {
-                    options.editorCallback(e.target.value);
-                    // Mark row as changed using functional update
-                    setRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
+                    const newValue = e.target.value;
+                    // Update products array immediately
+                    const _products = products.map(p => 
+                        p.id === options.rowData.id 
+                            ? { ...p, [options.field]: newValue }
+                            : p
+                    );
+                    setProducts(_products);
+                    options.editorCallback(newValue);
                 }} 
             />
         );
@@ -320,9 +326,15 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 value={options.value}
                 options={statuses}
                 onChange={(e) => {
-                    options.editorCallback(e.value);
-                    // Mark row as changed using functional update
-                    setRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
+                    const newValue = e.value;
+                    // Update products array immediately
+                    const _products = products.map(p => 
+                        p.id === options.rowData.id 
+                            ? { ...p, inventoryStatus: newValue }
+                            : p
+                    );
+                    setProducts(_products);
+                    options.editorCallback(newValue);
                 }}
                 placeholder="Select Shift"
                 appendTo={document.body}
@@ -337,9 +349,16 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 value={options.value}
                 options={deliveryStatuses}
                 onChange={(e) => {
-                    options.editorCallback(e.value);
-                    // Mark row as changed
-                    setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
+                    const newValue = e.value;
+                    // Update modalProducts array immediately
+                    const _modalProducts = modalProducts.map(p => 
+                        p.id === options.rowData.id 
+                            ? { ...p, inventoryStatus: newValue }
+                            : p
+                    );
+                    setModalProducts(_modalProducts);
+                    setFilteredModalProducts(_modalProducts);
+                    options.editorCallback(newValue);
                 }}
                 placeholder="Select Delivery"
                 appendTo={document.body}
@@ -681,9 +700,15 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     onChange={(e) => {
                         // Only allow numeric input
                         const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                        // Update modalProducts array immediately
+                        const _modalProducts = modalProducts.map(p => 
+                            p.id === options.rowData.id 
+                                ? { ...p, code: numericValue }
+                                : p
+                        );
+                        setModalProducts(_modalProducts);
+                        setFilteredModalProducts(_modalProducts);
                         options.editorCallback(numericValue);
-                        // Mark row as changed
-                        setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
                     }}
                     keyfilter="pint"
                     className={isDuplicate ? 'p-invalid' : ''}
@@ -722,9 +747,16 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             type="text" 
                             value={options.value} 
                             onChange={(e) => {
-                                options.editorCallback(e.target.value);
-                                // Mark row as changed
-                                setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
+                                const newValue = e.target.value;
+                                // Update modalProducts array immediately
+                                const _modalProducts = modalProducts.map(p => 
+                                    p.id === options.rowData.id 
+                                        ? { ...p, location: newValue }
+                                        : p
+                                );
+                                setModalProducts(_modalProducts);
+                                setFilteredModalProducts(_modalProducts);
+                                options.editorCallback(newValue);
                             }} 
                         />
                     );
@@ -738,9 +770,16 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             type="text" 
                             value={options.value} 
                             onChange={(e) => {
-                                options.editorCallback(e.target.value);
-                                // Mark row as changed
-                                setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
+                                const newValue = e.target.value;
+                                // Update modalProducts array immediately
+                                const _modalProducts = modalProducts.map(p => 
+                                    p.id === options.rowData.id 
+                                        ? { ...p, [options.field]: newValue }
+                                        : p
+                                );
+                                setModalProducts(_modalProducts);
+                                setFilteredModalProducts(_modalProducts);
+                                options.editorCallback(newValue);
                             }} 
                         />
                     );
