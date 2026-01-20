@@ -380,6 +380,7 @@ body {
     font-weight: 600;
     color: var(--text-color);
     line-height: 1.2;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .nav-subtitle {
@@ -388,6 +389,7 @@ body {
     color: var(--text-color-secondary);
     opacity: 0.7;
     letter-spacing: 0.3px;
+    transition: opacity 0.3s ease, color 0.3s ease;
 }
 
 /* Fix dropdown overlay in dialog */
@@ -2239,4 +2241,52 @@ body.dark .dark\:border-neutral-600 {
 .p-datatable .p-sortable-column:hover .p-column-title,
 .p-datatable .p-sortable-column.p-highlight .p-column-title {
     text-align: center !important;
+}
+
+/* Edit Mode Loading Overlay */
+.edit-mode-loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.edit-mode-loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }

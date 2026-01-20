@@ -10,6 +10,7 @@ function App() {
     const menuButtonRef = React.useRef(null);
     const [addRowCallback, setAddRowCallback] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
+    const [isTogglingEditMode, setIsTogglingEditMode] = useState(false);
     const [saveCallback, setSaveCallback] = useState(null);
     const [hasChangesCallback, setHasChangesCallback] = useState(null);
     const [discardChangesCallback, setDiscardChangesCallback] = useState(null);
@@ -82,23 +83,41 @@ function App() {
                 acceptClassName: 'p-button-success',
                 rejectClassName: 'p-button-danger',
                 accept: () => {
-                    // Save all changes then exit
-                    if (saveCallback) {
-                        saveCallback();
-                    }
-                    setIsEditMode(false);
+                    // Save all changes then exit with loading state
+                    setIsTogglingEditMode(true);
+                    setTimeout(() => {
+                        if (saveCallback) {
+                            saveCallback();
+                        }
+                        setIsEditMode(false);
+                        setTimeout(() => {
+                            setIsTogglingEditMode(false);
+                        }, 300);
+                    }, 100);
                 },
                 reject: () => {
-                    // Discard changes and exit
-                    if (discardChangesCallback) {
-                        discardChangesCallback();
-                    }
-                    setIsEditMode(false);
+                    // Discard changes and exit with loading state
+                    setIsTogglingEditMode(true);
+                    setTimeout(() => {
+                        if (discardChangesCallback) {
+                            discardChangesCallback();
+                        }
+                        setIsEditMode(false);
+                        setTimeout(() => {
+                            setIsTogglingEditMode(false);
+                        }, 300);
+                    }, 100);
                 }
             });
         } else {
-            // No changes or entering edit mode, toggle directly
-            setIsEditMode(!isEditMode);
+            // No changes or entering edit mode, toggle with loading state
+            setIsTogglingEditMode(true);
+            setTimeout(() => {
+                setIsEditMode(!isEditMode);
+                setTimeout(() => {
+                    setIsTogglingEditMode(false);
+                }, 300);
+            }, 100);
         }
     };
 
@@ -111,6 +130,19 @@ function App() {
     return (
         <>
             <ConfirmDialog />
+            
+            {/* Loading Overlay for Edit Mode Toggle */}
+            {isTogglingEditMode && (
+                <div className="edit-mode-loading-overlay">
+                    <div className="edit-mode-loading-content">
+                        <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem', color: '#fff' }}></i>
+                        <span style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#fff' }}>
+                            {isEditMode ? 'Exiting Edit Mode...' : 'Entering Edit Mode...'}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {isMenuOpen && (
                 <div 
                     className="menu-backdrop"
@@ -167,16 +199,18 @@ function App() {
                             <div style={{ borderTop: '1px solid var(--surface-border)', margin: '4px 0' }} />
                             <Button
                                 label={isEditMode ? 'Exit Edit Mode' : 'Edit Mode'}
-                                icon={isEditMode ? 'pi pi-times' : 'pi pi-pencil'}
+                                icon={isTogglingEditMode ? 'pi pi-spin pi-spinner' : (isEditMode ? 'pi pi-times' : 'pi pi-pencil')}
                                 className="p-button-text p-button-plain"
                                 onClick={() => {
                                     toggleEditMode();
                                     menuRef.current.hide();
                                     setIsMenuOpen(false);
                                 }}
+                                disabled={isTogglingEditMode}
                                 style={{ 
                                     justifyContent: 'flex-start',
-                                    color: isEditMode ? '#ef4444' : undefined
+                                    color: isEditMode ? '#ef4444' : undefined,
+                                    opacity: isTogglingEditMode ? 0.6 : 1
                                 }}
                             />
                             <Button
