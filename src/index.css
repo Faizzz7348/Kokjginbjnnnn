@@ -2014,3 +2014,38 @@ body.dark .dark\:border-neutral-600 {
         transform: rotate(360deg);
     }
 }
+
+/* Hide sort icons by default, show on hover */
+.p-datatable .p-sortable-column .p-sortable-column-icon {
+    opacity: 0 !important;
+    transition: opacity 0.2s ease !important;
+}
+
+.p-datatable .p-sortable-column:hover .p-sortable-column-icon {
+    opacity: 1 !important;
+}
+
+/* Always show sort icon for currently sorted column */
+.p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon {
+    opacity: 1 !important;
+}
+
+/* Force center alignment for sortable columns in all states */
+.p-datatable .p-sortable-column,
+.p-datatable .p-sortable-column:hover,
+.p-datatable .p-sortable-column.p-highlight {
+    text-align: center !important;
+}
+
+.p-datatable .p-sortable-column .p-column-header-content,
+.p-datatable .p-sortable-column:hover .p-column-header-content,
+.p-datatable .p-sortable-column.p-highlight .p-column-header-content {
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+.p-datatable .p-sortable-column .p-column-title,
+.p-datatable .p-sortable-column:hover .p-column-title,
+.p-datatable .p-sortable-column.p-highlight .p-column-title {
+    text-align: center !important;
+}

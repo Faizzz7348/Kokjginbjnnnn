@@ -54,6 +54,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [filteredModalProducts, setFilteredModalProducts] = useState([]);
     const [globalFilter, setGlobalFilter] = useState('');
     const [visibleColumns, setVisibleColumns] = useState(['code', 'location', 'inventoryStatus', 'images']);
+    const [sortField, setSortField] = useState('code');
+    const [sortOrder, setSortOrder] = useState(1);
     const [customizeModalVisible, setCustomizeModalVisible] = useState(false);
     const [tempVisibleColumns, setTempVisibleColumns] = useState([]);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
@@ -93,6 +95,25 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         { field: 'inventoryStatus', header: 'Delivery' },
         { field: 'images', header: 'Images' }
     ];
+
+    // Auto-calculate column widths based on visible columns
+    const getColumnWidth = useMemo(() => {
+        const numVisibleColumns = visibleColumns.length;
+        if (numVisibleColumns === 0) return {};
+        
+        // Reserve space for No column (5%) and Action column (15%)
+        const reservedSpace = 20; // 5% + 15% = 20%
+        const availableSpace = 100 - reservedSpace;
+        
+        // Calculate width per column
+        const widthPerColumn = availableSpace / numVisibleColumns;
+        
+        return {
+            width: `${widthPerColumn}%`,
+            minWidth: '100px', // Minimum width to prevent too narrow columns
+            maxWidth: '400px'  // Maximum width to prevent too wide columns
+        };
+    }, [visibleColumns]);
 
     useEffect(() => {
         ProductService.getProductsMini().then((data) => {
@@ -639,12 +660,18 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 <InputText 
                     type="text" 
                     value={options.value} 
-                    onChange={(e) => options.editorCallback(e.target.value)}
+                    onChange={(e) => {
+                        // Only allow numeric input
+                        const numericValue = e.target.value.replace(/[^0-9]/g, '');
+                        options.editorCallback(numericValue);
+                    }}
+                    keyfilter="pint"
                     className={isDuplicate ? 'p-invalid' : ''}
                     style={isDuplicate ? { 
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239, 68, 68, 0.1)'
                     } : {}}
+                    placeholder="Numbers only"
                 />
                 {isDuplicate && (
                     <small style={{ 
@@ -1451,6 +1478,12 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     editMode="row"
                     dataKey="id"
                     autoLayout
+                    sortField={sortField}
+                    sortOrder={sortOrder}
+                    onSort={(e) => {
+                        setSortField(e.sortField);
+                        setSortOrder(e.sortOrder);
+                    }}
                     onRowEditComplete={onModalRowEditComplete}
                     editingRows={modalEditingRows}
                     onRowEditChange={(e) => {
@@ -1481,11 +1514,11 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 header={col.header}
                                 editor={isEditMode ? getColumnEditor(col.field) : null}
                                 body={getColumnBody(col.field)}
+                                sortable
                                 style={{ 
-                                    minWidth: col.field === 'code' ? '120px' : 
-                                              col.field === 'location' ? '200px' : 
-                                              col.field === 'inventoryStatus' ? '120px' : 
-                                              col.field === 'images' ? '100px' : '150px'
+                                    width: getColumnWidth.width,
+                                    minWidth: getColumnWidth.minWidth,
+                                    maxWidth: getColumnWidth.maxWidth
                                 }}
                                 headerStyle={{ textAlign: 'center' }}
                                 bodyStyle={{ 
