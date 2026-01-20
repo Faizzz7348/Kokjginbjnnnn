@@ -307,8 +307,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 value={options.value} 
                 onChange={(e) => {
                     options.editorCallback(e.target.value);
-                    // Mark row as changed
-                    setRowHasChanges({ ...rowHasChanges, [options.rowData.id]: true });
+                    // Mark row as changed using functional update
+                    setRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
                 }} 
             />
         );
@@ -321,8 +321,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 options={statuses}
                 onChange={(e) => {
                     options.editorCallback(e.value);
-                    // Mark row as changed
-                    setRowHasChanges({ ...rowHasChanges, [options.rowData.id]: true });
+                    // Mark row as changed using functional update
+                    setRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
                 }}
                 placeholder="Select Shift"
                 appendTo={document.body}
@@ -339,7 +339,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                 onChange={(e) => {
                     options.editorCallback(e.value);
                     // Mark row as changed
-                    setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
+                    setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
                 }}
                 placeholder="Select Delivery"
                 appendTo={document.body}
@@ -683,7 +683,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         const numericValue = e.target.value.replace(/[^0-9]/g, '');
                         options.editorCallback(numericValue);
                         // Mark row as changed
-                        setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
+                        setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
                     }}
                     keyfilter="pint"
                     className={isDuplicate ? 'p-invalid' : ''}
@@ -724,7 +724,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             onChange={(e) => {
                                 options.editorCallback(e.target.value);
                                 // Mark row as changed
-                                setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
+                                setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
                             }} 
                         />
                     );
@@ -740,7 +740,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             onChange={(e) => {
                                 options.editorCallback(e.target.value);
                                 // Mark row as changed
-                                setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
+                                setModalRowHasChanges(prev => ({ ...prev, [options.rowData.id]: true }));
                             }} 
                         />
                     );
@@ -1315,7 +1315,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     const rowEditorTemplate = (rowData) => {
         const isEditing = editingRows[rowData.id] !== undefined;
-        const hasChanges = rowHasChanges[rowData.id] || false;
+        const hasChanges = rowHasChanges[rowData.id];
 
         if (isEditing) {
             return (
@@ -1328,9 +1328,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             // Manually trigger save
                             await onRowEditComplete({ newData: rowData, index: products.findIndex(p => p.id === rowData.id) });
                             setEditingRows({});
-                            setRowHasChanges({ ...rowHasChanges, [rowData.id]: false });
                         }}
-                        disabled={!hasChanges}
                         severity="success"
                     />
                     <Button
@@ -1339,7 +1337,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         text
                         onClick={() => {
                             setEditingRows({});
-                            setRowHasChanges({ ...rowHasChanges, [rowData.id]: false });
                             // Reload data to revert changes
                             const original = originalRowData[rowData.id];
                             if (original) {
@@ -1364,7 +1361,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     onClick={() => {
                         setEditingRows({ [rowData.id]: true });
                         setOriginalRowData({ ...originalRowData, [rowData.id]: { ...rowData } });
-                        setRowHasChanges({ ...rowHasChanges, [rowData.id]: false });
                     }}
                 />
             );
@@ -1386,9 +1382,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                             // Manually trigger save
                             await onModalRowEditComplete({ newData: rowData, index: modalProducts.findIndex(p => p.id === rowData.id) });
                             setModalEditingRows({});
-                            setModalRowHasChanges({ ...modalRowHasChanges, [rowData.id]: false });
                         }}
-                        disabled={!hasChanges}
                         severity="success"
                     />
                     <Button
@@ -1397,7 +1391,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         text
                         onClick={() => {
                             setModalEditingRows({});
-                            setModalRowHasChanges({ ...modalRowHasChanges, [rowData.id]: false });
                             // Reload data to revert changes
                             const original = originalModalRowData[rowData.id];
                             if (original) {
@@ -1422,7 +1415,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     onClick={() => {
                         setModalEditingRows({ [rowData.id]: true });
                         setOriginalModalRowData({ ...originalModalRowData, [rowData.id]: { ...rowData } });
-                        setModalRowHasChanges({ ...modalRowHasChanges, [rowData.id]: false });
                     }}
                     disabled={hasDuplicateCode(rowData)}
                 />
@@ -1956,7 +1948,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 <div className="shortcuts-buttons-grid">
                                     {/* FamilyMart Button - Only if code is numeric */}
                                     {(() => {
-                                        const code = infoModalData?.code;
+                                        const code = selectedLocationInfo?.code;
                                         if (!code || code.toString().trim() === '') return null;
                                         const isNumeric = /^\d+$/.test(code.toString().trim());
                                         if (!isNumeric) return null;
@@ -1981,9 +1973,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     })()}
                                     
                                     {/* Google Maps Button */}
-                                    {infoModalData?.latitude && infoModalData?.longitude && (
+                                    {selectedLocationInfo?.latitude && selectedLocationInfo?.longitude && (
                                         <a
-                                            href={`https://www.google.com/maps/search/?api=1&query=${infoModalData.latitude},${infoModalData.longitude}`}
+                                            href={`https://www.google.com/maps/search/?api=1&query=${selectedLocationInfo.latitude},${selectedLocationInfo.longitude}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="shortcut-btn shortcut-google-maps"
@@ -1994,9 +1986,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     )}
                                     
                                     {/* Waze Button */}
-                                    {infoModalData?.latitude && infoModalData?.longitude && (
+                                    {selectedLocationInfo?.latitude && selectedLocationInfo?.longitude && (
                                         <a
-                                            href={`https://www.waze.com/ul?ll=${infoModalData.latitude},${infoModalData.longitude}&navigate=yes`}
+                                            href={`https://www.waze.com/ul?ll=${selectedLocationInfo.latitude},${selectedLocationInfo.longitude}&navigate=yes`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="shortcut-btn shortcut-waze"
@@ -2007,9 +1999,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     )}
                                     
                                     {/* Website Link Button */}
-                                    {infoModalData?.websiteLink && (
+                                    {selectedLocationInfo?.websiteLink && (
                                         <a
-                                            href={infoModalData.websiteLink}
+                                            href={selectedLocationInfo.websiteLink}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="shortcut-btn shortcut-website"
@@ -2020,12 +2012,12 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     )}
                                     
                                     {/* QR Code Button */}
-                                    {infoModalData?.qrCodeImageUrl && (
+                                    {selectedLocationInfo?.qrCodeImageUrl && (
                                         <button
                                             onClick={() => {
                                                 // Open QR code in new tab or trigger scan
-                                                if (infoModalData.qrCodeDestinationUrl) {
-                                                    window.open(infoModalData.qrCodeDestinationUrl, '_blank');
+                                                if (selectedLocationInfo.qrCodeDestinationUrl) {
+                                                    window.open(selectedLocationInfo.qrCodeDestinationUrl, '_blank');
                                                 }
                                             }}
                                             className="shortcut-btn shortcut-qr"
