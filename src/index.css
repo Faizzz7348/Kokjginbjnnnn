@@ -1015,6 +1015,7 @@ body {
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .info-header-section {
@@ -1206,6 +1207,7 @@ body {
     align-items: center;
     padding: 10px 0;
     border-bottom: 1px solid var(--surface-border);
+    min-height: 44px; /* Touch-friendly minimum height for mobile */
 }
 
 .description-item:last-child {
@@ -1266,6 +1268,8 @@ body {
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
+    min-height: 44px; /* Touch-friendly for mobile */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
 }
 
 .quick-action-btn.primary {
@@ -1306,8 +1310,91 @@ body {
 
 /* Responsive for info modal */
 @media (max-width: 768px) {
+    .info-modal-dialog .p-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 1rem !important;
+    }
+
     .info-modal-container {
-        width: 95vw;
+        width: 100%;
+        max-height: 85vh;
+    }
+    
+    .info-map-wrapper {
+        height: 180px;
+    }
+
+    .map-overlay-badge {
+        font-size: 11px;
+        padding: 6px 12px;
+        top: 12px;
+        right: 12px;
+    }
+
+    .info-modal-content {
+        padding: 16px;
+    }
+
+    .info-title {
+        font-size: 16px !important;
+    }
+
+    .delivery-type-badge {
+        font-size: 10px !important;
+        padding: 4px 8px !important;
+    }
+
+    .descriptions-title {
+        font-size: 14px !important;
+    }
+
+    .description-label {
+        font-size: 11px !important;
+    }
+
+    .description-value,
+    .description-input {
+        font-size: 12px !important;
+    }
+
+    .gps-coordinates-section {
+        padding: 12px 16px;
+    }
+
+    .gps-inputs {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .address-content {
+        padding: 12px 16px;
+    }
+
+    .address-text,
+    .address-textarea {
+        font-size: 11px !important;
+    }
+
+    .quick-actions-section {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .quick-action-btn {
+        width: 100%;
+        font-size: 12px !important;
+        padding: 10px 16px !important;
+    }
+
+    .info-modal-footer {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+    }
+
+    .info-modal-footer .p-button {
+        font-size: 12px !important;
+        padding: 8px 16px !important;
     }
     
     .info-grid-container {
@@ -1316,6 +1403,110 @@ body {
     
     .info-grid-item.full-width {
         grid-column: 1;
+    }
+}
+
+/* Extra responsive for small phones (portrait) */
+@media (max-width: 480px) {
+    .info-modal-dialog .p-dialog {
+        width: 98vw !important;
+        max-width: 98vw !important;
+        margin: 0.5rem !important;
+        max-height: 95vh !important;
+    }
+
+    .info-modal-dialog .p-dialog-content {
+        max-height: 90vh !important;
+    }
+
+    .info-modal-container {
+        max-height: 90vh;
+    }
+
+    .info-map-wrapper {
+        height: 150px;
+    }
+
+    .map-overlay-badge {
+        font-size: 10px;
+        padding: 5px 10px;
+        top: 10px;
+        right: 10px;
+    }
+
+    .info-modal-content {
+        padding: 12px;
+    }
+
+    .info-header-section {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+    }
+
+    .info-title {
+        font-size: 14px !important;
+    }
+
+    .descriptions-section {
+        margin-bottom: 16px;
+    }
+
+    .description-item {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 4px;
+        padding: 12px 0;
+    }
+
+    .description-label,
+    .description-value {
+        width: 100%;
+        text-align: left !important;
+    }
+
+    .description-input {
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: left !important;
+    }
+
+    .gps-label {
+        font-size: 12px;
+    }
+
+    .address-collapse-btn {
+        padding: 10px 16px;
+        font-size: 12px;
+    }
+
+    .info-modal-footer {
+        gap: 8px;
+    }
+
+    .info-modal-footer .p-button {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+/* Landscape mode for mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .info-modal-dialog .p-dialog {
+        max-height: 95vh !important;
+    }
+
+    .info-modal-container {
+        max-height: 90vh;
+    }
+
+    .info-map-wrapper {
+        height: 120px;
+    }
+
+    .info-modal-content {
+        padding: 12px;
     }
 }
 

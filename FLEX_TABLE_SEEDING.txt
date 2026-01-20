@@ -1,0 +1,61 @@
+═══════════════════════════════════════════════════════════════
+  🌱 FLEX TABLE SAMPLE DATA GENERATOR
+═══════════════════════════════════════════════════════════════
+
+📦 FILES CREATED:
+├── server/seedFlexData.js      - Seeds flex table with sample data
+├── server/checkFlexData.js     - Verify flex table data
+└── setup-flex-data.sh          - Quick setup script
+
+🎯 WHAT IT DOES:
+For each parent product, this will create 5-8 flex table rows with:
+  
+  ✅ Unique location codes (VM-001, VM-002, etc.)
+  ✅ Different locations (Lobby, Cafeteria, Office, etc.)
+  ✅ GPS coordinates (realistic KL area)
+  ✅ Full addresses
+  ✅ Delivery status (AM/PM)
+  ✅ Power Mode (ON/OFF/Not Set) - randomly assigned
+  ✅ Images (variety - some with 2-3, some with 1, some without)
+  ✅ Operating hours & machine details
+  ✅ Maintenance info
+
+🚀 QUICK START:
+
+1. Make sure you have parent products in main table
+   
+2. Run the seeding:
+   npm run seed-flex
+
+3. Check the data:
+   npm run check-flex
+
+4. Open app and click "Flex Table" button!
+
+📝 EXAMPLE OUTPUT:
+═══════════════════════════════════════════════════════════════
+Parent: ROUTE-001 - North Distribution Center
+   Flex Rows: 7
+
+   1. VM-001 - Lobby Area - Main Building
+      🌅 AM  🟢 Power: on
+   2. VM-002 - Cafeteria - Level 2
+      🌙 PM  🔴 Power: off
+   3. VM-003 - Office Block A - Entrance
+      🌅 AM  ⚪ Power: Not Set
+   ... and more
+═══════════════════════════════════════════════════════════════
+
+💡 TIPS:
+- Run seed multiple times to add more data to different parents
+- Use 'npm run check-flex' to see all data
+- Data includes variety for realistic testing
+- Power mode colors in app: 🟢 Green=ON, 🔴 Red=OFF, ⚪ Grey=Not Set
+
+🔄 TO RESET & START FRESH:
+npm run init-db        # Reset database
+# Add parent products via UI
+npm run seed-flex      # Add flex data
+npm run check-flex     # Verify
+
+═══════════════════════════════════════════════════════════════

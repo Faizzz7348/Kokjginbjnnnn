@@ -1322,6 +1322,15 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     text
                     onClick={() => onOpenInfoModal(rowData)}
                 />
+                {isRowBeingEdited && (
+                    <Button
+                        icon="pi pi-trash"
+                        rounded
+                        text
+                        severity="danger"
+                        onClick={() => confirmModalDelete(rowData)}
+                    />
+                )}
             </div>
         );
     };
@@ -1536,15 +1545,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         headerStyle={{ textAlign: 'center' }}
                         bodyStyle={{ textAlign: 'center' }}
                     />
-                    {Object.keys(modalEditingRows).length > 0 && (
-                        <Column 
-                            body={modalDeleteButtonTemplate} 
-                            exportable={false} 
-                            style={{ width: '5%', minWidth: '4rem' }} 
-                            headerStyle={{ textAlign: 'center' }} 
-                            bodyStyle={{ textAlign: 'center' }}
-                        />
-                    )}
                     {isEditMode && (
                         <Column
                             header="Editable"
@@ -1604,7 +1604,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             {/* Info Modal with Card and Map - Huijack Style */}
             <Dialog 
                 visible={infoModalVisible}
-                style={{ width: '60vw', maxWidth: '700px', maxHeight: '90vh' }}
+                style={{ width: '95vw', maxWidth: '700px', maxHeight: '90vh' }}
                 modal
                 onHide={() => setInfoModalVisible(false)}
                 contentStyle={{ padding: 0, overflow: 'auto', borderRadius: '16px', maxHeight: '85vh' }}

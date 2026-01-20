@@ -1,0 +1,48 @@
+🔧 QUICK FIX: "column power_mode does not exist" Error
+═══════════════════════════════════════════════════════════════
+
+❌ ERROR YANG ANDA NAMPAK:
+Error: column "power_mode" does not exist
+
+🔍 SEBAB:
+Database schema lama tidak ada columns: power_mode dan images
+
+✅ PENYELESAIAN (2 PILIHAN):
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PILIHAN 1: MIGRATE (Recommended - Keep Data)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Jalankan migration untuk tambah columns sahaja:
+
+npm run migrate-db
+
+✅ Ini akan:
+- Tambah column power_mode
+- Tambah column images  
+- SIMPAN semua data existing anda
+
+Lepas tu boleh proceed:
+npm run seed-flex
+npm run check-flex
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PILIHAN 2: RESET (Fresh Start - Delete All Data)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Reset database completely:
+
+npm run init-db
+
+⚠️  WARNING: Ini akan DELETE semua data!
+
+Lepas tu:
+1. Tambah parent products via UI
+2. npm run seed-flex
+3. npm run check-flex
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 RECOMMENDATION: Guna PILIHAN 1 (migrate) kalau anda ada data penting!
+
+═══════════════════════════════════════════════════════════════

@@ -47,6 +47,8 @@ async function initDatabase() {
                 last_maintenance VARCHAR(255),
                 status VARCHAR(100),
                 parent_id INTEGER,
+                images JSONB,
+                power_mode VARCHAR(10),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
