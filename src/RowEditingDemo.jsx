@@ -76,6 +76,10 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [imageCaptionInput, setImageCaptionInput] = useState('');
     const [powerModalVisible, setPowerModalVisible] = useState(false);
     const [selectedPowerRow, setSelectedPowerRow] = useState(null);
+    const [originalRowData, setOriginalRowData] = useState({});
+    const [originalModalRowData, setOriginalModalRowData] = useState({});
+    const [rowHasChanges, setRowHasChanges] = useState({});
+    const [modalRowHasChanges, setModalRowHasChanges] = useState({});
 
     // Memoize sorted products to prevent infinite re-renders
     const sortedProducts = useMemo(() => {
@@ -93,7 +97,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         { field: 'code', header: 'Code' },
         { field: 'location', header: 'Location' },
         { field: 'inventoryStatus', header: 'Delivery' },
-        { field: 'images', header: 'Images' }
+        { field: 'images', header: 'Images', sortable: false }
     ];
 
     // Auto-calculate column widths based on visible columns
@@ -297,7 +301,17 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     };
 
     const textEditor = (options) => {
-        return <InputText type="text" value={options.value} onChange={(e) => options.editorCallback(e.target.value)} />;
+        return (
+            <InputText 
+                type="text" 
+                value={options.value} 
+                onChange={(e) => {
+                    options.editorCallback(e.target.value);
+                    // Mark row as changed
+                    setRowHasChanges({ ...rowHasChanges, [options.rowData.id]: true });
+                }} 
+            />
+        );
     };
 
     const shiftEditor = (options) => {
@@ -305,7 +319,11 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             <Dropdown
                 value={options.value}
                 options={statuses}
-                onChange={(e) => options.editorCallback(e.value)}
+                onChange={(e) => {
+                    options.editorCallback(e.value);
+                    // Mark row as changed
+                    setRowHasChanges({ ...rowHasChanges, [options.rowData.id]: true });
+                }}
                 placeholder="Select Shift"
                 appendTo={document.body}
             />
@@ -318,7 +336,11 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             <Dropdown
                 value={options.value}
                 options={deliveryStatuses}
-                onChange={(e) => options.editorCallback(e.value)}
+                onChange={(e) => {
+                    options.editorCallback(e.value);
+                    // Mark row as changed
+                    setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
+                }}
                 placeholder="Select Delivery"
                 appendTo={document.body}
                 panelStyle={{ zIndex: 9999 }}
@@ -337,10 +359,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     const priceBodyTemplate = (rowData) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(rowData.price);
-    };
-
-    const allowEdit = (rowData) => {
-        return rowData.name !== 'Blue Band';
     };
 
     const saveAll = () => {
@@ -664,6 +682,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         // Only allow numeric input
                         const numericValue = e.target.value.replace(/[^0-9]/g, '');
                         options.editorCallback(numericValue);
+                        // Mark row as changed
+                        setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
                     }}
                     keyfilter="pint"
                     className={isDuplicate ? 'p-invalid' : ''}
@@ -696,11 +716,35 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             case 'code':
                 return codeEditorWithValidation;
             case 'location':
-                return textEditor;
+                return (options) => {
+                    return (
+                        <InputText 
+                            type="text" 
+                            value={options.value} 
+                            onChange={(e) => {
+                                options.editorCallback(e.target.value);
+                                // Mark row as changed
+                                setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
+                            }} 
+                        />
+                    );
+                };
             case 'images':
                 return null; // Images tidak editable via field, gunakan pencil icon
             default:
-                return textEditor;
+                return (options) => {
+                    return (
+                        <InputText 
+                            type="text" 
+                            value={options.value} 
+                            onChange={(e) => {
+                                options.editorCallback(e.target.value);
+                                // Mark row as changed
+                                setModalRowHasChanges({ ...modalRowHasChanges, [options.rowData.id]: true });
+                            }} 
+                        />
+                    );
+                };
         }
     };
 
@@ -1168,7 +1212,10 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
             machineType: rowData.machineType || 'Snack & Beverage Combo',
             paymentMethods: rowData.paymentMethods || 'Cash, Card, E-Wallet, QR Code',
             lastMaintenance: rowData.lastMaintenance || `${rowData.id || 2} days ago`,
-            status: rowData.status || 'Active & Operational'
+            status: rowData.status || 'Active & Operational',
+            websiteLink: rowData.websiteLink || null,
+            qrCodeImageUrl: rowData.qrCodeImageUrl || null,
+            qrCodeDestinationUrl: rowData.qrCodeDestinationUrl || null
         };
         setSelectedLocationInfo(locationData);
         setInfoModalVisible(true);
@@ -1222,6 +1269,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const actionBodyTemplate = (rowData) => {
         const changesCount = rowChangesCounts[rowData.id] || 0;
         const isPinned = pinnedRows.has(rowData.id);
+        const isEditing = editingRows[rowData.id] !== undefined;
         
         return (
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', position: 'relative' }}>
@@ -1252,8 +1300,134 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         />
                     )}
                 </div>
+                {isEditing && (
+                    <Button
+                        icon="pi pi-trash"
+                        rounded
+                        text
+                        severity="danger"
+                        onClick={() => confirmDelete(rowData)}
+                    />
+                )}
             </div>
         );
+    };
+
+    const rowEditorTemplate = (rowData) => {
+        const isEditing = editingRows[rowData.id] !== undefined;
+        const hasChanges = rowHasChanges[rowData.id] || false;
+
+        if (isEditing) {
+            return (
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                    <Button
+                        icon="pi pi-check"
+                        rounded
+                        text
+                        onClick={async () => {
+                            // Manually trigger save
+                            await onRowEditComplete({ newData: rowData, index: products.findIndex(p => p.id === rowData.id) });
+                            setEditingRows({});
+                            setRowHasChanges({ ...rowHasChanges, [rowData.id]: false });
+                        }}
+                        disabled={!hasChanges}
+                        severity="success"
+                    />
+                    <Button
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        onClick={() => {
+                            setEditingRows({});
+                            setRowHasChanges({ ...rowHasChanges, [rowData.id]: false });
+                            // Reload data to revert changes
+                            const original = originalRowData[rowData.id];
+                            if (original) {
+                                const _products = [...products];
+                                const index = _products.findIndex(p => p.id === rowData.id);
+                                if (index !== -1) {
+                                    _products[index] = { ...original };
+                                    setProducts(_products);
+                                }
+                            }
+                        }}
+                        severity="danger"
+                    />
+                </div>
+            );
+        } else {
+            return (
+                <Button
+                    icon="pi pi-pencil"
+                    rounded
+                    text
+                    onClick={() => {
+                        setEditingRows({ [rowData.id]: true });
+                        setOriginalRowData({ ...originalRowData, [rowData.id]: { ...rowData } });
+                        setRowHasChanges({ ...rowHasChanges, [rowData.id]: false });
+                    }}
+                />
+            );
+        }
+    };
+
+    const modalRowEditorTemplate = (rowData) => {
+        const isEditing = modalEditingRows[rowData.id] !== undefined;
+        const hasChanges = modalRowHasChanges[rowData.id] || false;
+
+        if (isEditing) {
+            return (
+                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                    <Button
+                        icon="pi pi-check"
+                        rounded
+                        text
+                        onClick={async () => {
+                            // Manually trigger save
+                            await onModalRowEditComplete({ newData: rowData, index: modalProducts.findIndex(p => p.id === rowData.id) });
+                            setModalEditingRows({});
+                            setModalRowHasChanges({ ...modalRowHasChanges, [rowData.id]: false });
+                        }}
+                        disabled={!hasChanges}
+                        severity="success"
+                    />
+                    <Button
+                        icon="pi pi-times"
+                        rounded
+                        text
+                        onClick={() => {
+                            setModalEditingRows({});
+                            setModalRowHasChanges({ ...modalRowHasChanges, [rowData.id]: false });
+                            // Reload data to revert changes
+                            const original = originalModalRowData[rowData.id];
+                            if (original) {
+                                const _products = [...modalProducts];
+                                const index = _products.findIndex(p => p.id === rowData.id);
+                                if (index !== -1) {
+                                    _products[index] = { ...original };
+                                    setModalProducts(_products);
+                                }
+                            }
+                        }}
+                        severity="danger"
+                    />
+                </div>
+            );
+        } else {
+            return (
+                <Button
+                    icon="pi pi-pencil"
+                    rounded
+                    text
+                    onClick={() => {
+                        setModalEditingRows({ [rowData.id]: true });
+                        setOriginalModalRowData({ ...originalModalRowData, [rowData.id]: { ...rowData } });
+                        setModalRowHasChanges({ ...modalRowHasChanges, [rowData.id]: false });
+                    }}
+                    disabled={hasDuplicateCode(rowData)}
+                />
+            );
+        }
     };
 
     const deleteButtonTemplate = (rowData) => {
@@ -1373,11 +1547,6 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
         return '';
     };
 
-    // Add function to check if row should be editable
-    const allowModalEdit = (rowData) => {
-        return !hasDuplicateCode(rowData);
-    };
-
     return (
         <>
             {isFlexMenuOpen && (
@@ -1396,30 +1565,19 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     value={sortedProducts} 
                     editMode="row" 
                     dataKey="id" 
-                    onRowEditComplete={onRowEditComplete} 
                     editingRows={editingRows}
+                    onRowEditChange={(e) => setEditingRows(e.data)}
                     autoLayout 
-                    onRowEditChange={(e) => {
-                        // Only allow one row to be edited at a time
-                        const rowIds = Object.keys(e.data);
-                        if (rowIds.length > 0) {
-                            const lastRowId = rowIds[rowIds.length - 1];
-                            setEditingRows({ [lastRowId]: true });
-                        } else {
-                            setEditingRows({});
-                        }
-                    }} 
                     tableStyle={{ minWidth: '50rem' }} 
                     scrollable 
                     scrollHeight="450px" 
                     rowClassName={rowClassName}
                 >
-                <Column field="code" header="Route" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '200px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column field="code" header="Route" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '140px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
                 <Column field="name" header="Warehouse" editor={isEditMode ? (options) => textEditor(options) : null} style={{ width: '250px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={isEditMode ? (options) => shiftEditor(options) : null} style={{ width: '120px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                <Column header="Action" body={actionBodyTemplate} exportable={false} style={{ width: '150px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
-                {Object.keys(editingRows).length > 0 && <Column body={deleteButtonTemplate} exportable={false} style={{ width: '80px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
-                {isEditMode && <Column rowEditor={allowEdit} header="Editable" headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
+                <Column field="inventoryStatus" header="Shift" body={statusBodyTemplate} editor={isEditMode ? (options) => shiftEditor(options) : null} style={{ width: '90px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                <Column header="Action" body={actionBodyTemplate} exportable={false} style={{ width: '200px' }} headerStyle={{ textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>
+                {isEditMode && <Column header="Editable" body={rowEditorTemplate} exportable={false} headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }} bodyStyle={{ textAlign: 'center' }}></Column>}
             </DataTable>
             </div>
 
@@ -1493,18 +1651,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         setSortField(e.sortField);
                         setSortOrder(e.sortOrder);
                     }}
-                    onRowEditComplete={onModalRowEditComplete}
                     editingRows={modalEditingRows}
-                    onRowEditChange={(e) => {
-                        // Only allow one row to be edited at a time in modal
-                        const rowIds = Object.keys(e.data);
-                        if (rowIds.length > 0) {
-                            const lastRowId = rowIds[rowIds.length - 1];
-                            setModalEditingRows({ [lastRowId]: true });
-                        } else {
-                            setModalEditingRows({});
-                        }
-                    }}
+                    onRowEditChange={(e) => setModalEditingRows(e.data)}
                     rowClassName={modalRowClassName}
                 >
                     <Column
@@ -1523,7 +1671,7 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                 header={col.header}
                                 editor={isEditMode ? getColumnEditor(col.field) : null}
                                 body={getColumnBody(col.field)}
-                                sortable
+                                sortable={col.sortable !== false}
                                 style={{ 
                                     width: getColumnWidth.width,
                                     minWidth: getColumnWidth.minWidth,
@@ -1548,7 +1696,8 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     {isEditMode && (
                         <Column
                             header="Editable"
-                            rowEditor={allowModalEdit}
+                            body={modalRowEditorTemplate}
+                            exportable={false}
                             headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }}
                             bodyStyle={{ textAlign: 'center' }}
                         />
@@ -1561,11 +1710,18 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     style={{ width: '450px' }}
                     modal
                     dismissableMask
+                    closable={false}
                     onHide={cancelColumnCustomization}
                     footer={
                         <div>
                             <Button label="Cancel" icon="pi pi-times" onClick={cancelColumnCustomization} className="p-button-text" />
-                            <Button label="Apply" icon="pi pi-check" onClick={applyColumnCustomization} autoFocus />
+                            <Button 
+                                label="Apply" 
+                                icon="pi pi-check" 
+                                onClick={applyColumnCustomization} 
+                                autoFocus 
+                                disabled={JSON.stringify(tempVisibleColumns.sort()) === JSON.stringify([...visibleColumns].sort())}
+                            />
                         </div>
                     }
                 >
@@ -1789,6 +1945,95 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                             </span>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Shortcuts Section - 100% from Tobirama */}
+                            <div className="shortcuts-section-info-modal">
+                                <h3 className="shortcuts-title-info-modal">
+                                    Shortcuts
+                                </h3>
+                                <div className="shortcuts-buttons-grid">
+                                    {/* FamilyMart Button - Only if code is numeric */}
+                                    {(() => {
+                                        const code = infoModalData?.code;
+                                        if (!code || code.toString().trim() === '') return null;
+                                        const isNumeric = /^\d+$/.test(code.toString().trim());
+                                        if (!isNumeric) return null;
+                                        const formattedCode = code.toString().trim().padStart(4, '0');
+                                        const familyMartLink = `https://fmvending.web.app/refill-service/M${formattedCode}`;
+                                        
+                                        return (
+                                            <a
+                                                href={familyMartLink}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="shortcut-btn shortcut-familymart"
+                                            >
+                                                <img 
+                                                    src="/FamilyMart.png" 
+                                                    alt="FamilyMart" 
+                                                    className="shortcut-icon-img"
+                                                />
+                                                <span className="shortcut-label">FamilyMart Refill</span>
+                                            </a>
+                                        );
+                                    })()}
+                                    
+                                    {/* Google Maps Button */}
+                                    {infoModalData?.latitude && infoModalData?.longitude && (
+                                        <a
+                                            href={`https://www.google.com/maps/search/?api=1&query=${infoModalData.latitude},${infoModalData.longitude}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="shortcut-btn shortcut-google-maps"
+                                        >
+                                            <i className="pi pi-map-marker"></i>
+                                            <span className="shortcut-label">Google Maps</span>
+                                        </a>
+                                    )}
+                                    
+                                    {/* Waze Button */}
+                                    {infoModalData?.latitude && infoModalData?.longitude && (
+                                        <a
+                                            href={`https://www.waze.com/ul?ll=${infoModalData.latitude},${infoModalData.longitude}&navigate=yes`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="shortcut-btn shortcut-waze"
+                                        >
+                                            <i className="pi pi-compass"></i>
+                                            <span className="shortcut-label">Waze</span>
+                                        </a>
+                                    )}
+                                    
+                                    {/* Website Link Button */}
+                                    {infoModalData?.websiteLink && (
+                                        <a
+                                            href={infoModalData.websiteLink}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="shortcut-btn shortcut-website"
+                                        >
+                                            <i className="pi pi-external-link"></i>
+                                            <span className="shortcut-label">Website</span>
+                                        </a>
+                                    )}
+                                    
+                                    {/* QR Code Button */}
+                                    {infoModalData?.qrCodeImageUrl && (
+                                        <button
+                                            onClick={() => {
+                                                // Open QR code in new tab or trigger scan
+                                                if (infoModalData.qrCodeDestinationUrl) {
+                                                    window.open(infoModalData.qrCodeDestinationUrl, '_blank');
+                                                }
+                                            }}
+                                            className="shortcut-btn shortcut-qr"
+                                        >
+                                            <i className="pi pi-qrcode"></i>
+                                            <span className="shortcut-label">QR Code</span>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 

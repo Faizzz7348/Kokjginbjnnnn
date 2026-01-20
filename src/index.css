@@ -56,7 +56,7 @@ td {
 .p-datatable .p-datatable-tbody > tr > td {
     padding: 0.75rem !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    font-size: 0.75rem !important; /* 12px - smaller text */
+    font-size: 0.75rem !important; /* 12px - back to original size */
     font-weight: 600 !important; /* semi-bold */
 }
 
@@ -68,7 +68,7 @@ td {
 
 /* Apply same styling to modal table rows */
 .p-dialog .p-datatable .p-datatable-tbody > tr > td {
-    font-size: 0.75rem !important;
+    font-size: 0.75rem !important; /* 12px - back to original */
     font-weight: 500 !important;
 }
 
@@ -87,6 +87,7 @@ td {
 
 .p-datatable .p-datatable-thead > tr > th {
     padding: 1.25rem !important;
+    font-size: 0.8125rem !important; /* 13px - smaller header (was 14px) */
 }
 
 /* Center text in edit mode */
@@ -324,6 +325,131 @@ td {
 /* Dialog styling */
 .p-dialog {
     z-index: 1000 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+
+/* Flex Table Modal - Rounded corners for header and footer */
+.p-dialog .p-dialog-header {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    border-bottom: none !important;
+}
+
+.p-dialog .p-dialog-header .p-dialog-title {
+    text-align: center !important;
+    width: 100% !important;
+    font-size: 0.875rem !important; /* 14px - smaller by 2px (was 16px) */
+}
+
+.p-dialog .p-dialog-content {
+    border: none !important;
+}
+
+.p-dialog .p-dialog-footer {
+    border-bottom-left-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+    border-top: 1px solid var(--surface-border) !important;
+    padding-top: 1rem !important;
+}
+
+/* Confirm Dialog - Hide X button and center title */
+.p-confirm-dialog .p-dialog-header .p-dialog-header-icon {
+    display: none !important;
+}
+
+.p-confirm-dialog .p-dialog-header .p-dialog-title {
+    text-align: center !important;
+    width: 100% !important;
+}
+
+/* Delete Dialog - Dark Orange Triangle Icon */
+.p-confirm-dialog .pi-exclamation-triangle {
+    color: #d97706 !important; /* dark orange */
+    font-size: 3rem !important;
+}
+
+/* Delete Dialog - Remove background, border, and hover from Yes/No buttons */
+.p-confirm-dialog .p-dialog-footer .p-button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.p-confirm-dialog .p-dialog-footer .p-button:hover {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.p-confirm-dialog .p-dialog-footer .p-button:focus {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.p-confirm-dialog .p-dialog-footer .p-button:active {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Yes button (danger) - Visible red in both modes */
+.p-confirm-dialog .p-dialog-footer .p-button-danger {
+    color: #ef4444 !important; /* bright red for light mode */
+}
+
+/* Dark mode - lighter red for Yes button */
+@media (prefers-color-scheme: dark) {
+    .p-confirm-dialog .p-dialog-footer .p-button-danger {
+        color: #f87171 !important; /* lighter red for dark mode */
+    }
+}
+
+/* Column Customize Modal - Cancel and Apply buttons styling */
+.p-dialog:has(.column-customize-list) .p-dialog-footer .p-button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.p-dialog:has(.column-customize-list) .p-dialog-footer .p-button:hover {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.p-dialog:has(.column-customize-list) .p-dialog-footer .p-button:focus {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.p-dialog:has(.column-customize-list) .p-dialog-footer .p-button:active {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Cancel button - Red text */
+.p-dialog:has(.column-customize-list) .p-dialog-footer .p-button-text {
+    color: #ef4444 !important; /* red for Cancel */
+}
+
+/* Apply button - Green text */
+.p-dialog:has(.column-customize-list) .p-dialog-footer .p-button:not(.p-button-text) {
+    color: #10b981 !important; /* green for Apply */
+}
+
+/* Dark mode colors */
+@media (prefers-color-scheme: dark) {
+    .p-dialog:has(.column-customize-list) .p-dialog-footer .p-button-text {
+        color: #f87171 !important; /* lighter red for Cancel in dark mode */
+    }
+    
+    .p-dialog:has(.column-customize-list) .p-dialog-footer .p-button:not(.p-button-text) {
+        color: #34d399 !important; /* lighter green for Apply in dark mode */
+    }
 }
 
 /* Dialog mask (backdrop for dialogs) */
@@ -1250,6 +1376,124 @@ body {
     box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
 }
 
+/* Shortcuts Section - 100% from Tobirama */
+.shortcuts-section-info-modal {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--surface-card);
+    border-radius: 12px;
+    border: 1px solid var(--surface-border);
+}
+
+.shortcuts-title-info-modal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.shortcuts-buttons-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.shortcut-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-family: inherit;
+    min-height: 44px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.shortcut-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.shortcut-btn:active {
+    transform: translateY(0);
+}
+
+.shortcut-icon-img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.shortcut-label {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* FamilyMart Button - Green gradient */
+.shortcut-familymart {
+    background: linear-gradient(135deg, #34c759 0%, #28a745 100%);
+    color: white;
+}
+
+.shortcut-familymart:hover {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    color: white;
+}
+
+/* Google Maps Button - Red */
+.shortcut-google-maps {
+    background: linear-gradient(135deg, #ea4335 0%, #d33b2c 100%);
+    color: white;
+}
+
+.shortcut-google-maps:hover {
+    background: linear-gradient(135deg, #d33b2c 0%, #c23228 100%);
+    color: white;
+}
+
+/* Waze Button - Blue */
+.shortcut-waze {
+    background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+    color: white;
+}
+
+.shortcut-waze:hover {
+    background: linear-gradient(135deg, #0099cc 0%, #007799 100%);
+    color: white;
+}
+
+/* Website Button - Purple */
+.shortcut-website {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+}
+
+.shortcut-website:hover {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+    color: white;
+}
+
+/* QR Code Button - Orange */
+.shortcut-qr {
+    background: linear-gradient(135deg, #ff9500 0%, #ff6b00 100%);
+    color: white;
+}
+
+.shortcut-qr:hover {
+    background: linear-gradient(135deg, #ff6b00 0%, #e65100 100%);
+    color: white;
+}
+
 .quick-actions-section {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -1387,6 +1631,28 @@ body {
         width: 100%;
         font-size: 12px !important;
         padding: 10px 16px !important;
+    }
+    
+    /* Shortcuts responsive */
+    .shortcuts-section-info-modal {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .shortcuts-title-info-modal {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+    
+    .shortcuts-buttons-grid {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .shortcut-btn {
+        width: 100%;
+        font-size: 12px;
+        padding: 10px 14px;
     }
 
     .info-modal-footer {
@@ -2203,24 +2469,38 @@ body.dark .dark\:border-neutral-600 {
 }
 
 @keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Spinning animation for spinner icons */
+.pi-spin {
+    animation: spin 1s linear infinite !important;
 }
 
 /* Hide sort icons by default, show on hover */
 .p-datatable .p-sortable-column .p-sortable-column-icon {
     opacity: 0 !important;
     transition: opacity 0.2s ease !important;
+    width: 0 !important;
+    margin-left: 0 !important;
 }
 
 .p-datatable .p-sortable-column:hover .p-sortable-column-icon {
     opacity: 1 !important;
+    width: auto !important;
+    margin-left: 0.5rem !important;
 }
 
 /* Always show sort icon for currently sorted column */
 .p-datatable .p-sortable-column.p-highlight .p-sortable-column-icon {
     opacity: 1 !important;
+    width: auto !important;
+    margin-left: 0.5rem !important;
 }
 
 /* Force center alignment for sortable columns in all states */
@@ -2228,6 +2508,7 @@ body.dark .dark\:border-neutral-600 {
 .p-datatable .p-sortable-column:hover,
 .p-datatable .p-sortable-column.p-highlight {
     text-align: center !important;
+    justify-content: center !important;
 }
 
 .p-datatable .p-sortable-column .p-column-header-content,
@@ -2235,12 +2516,15 @@ body.dark .dark\:border-neutral-600 {
 .p-datatable .p-sortable-column.p-highlight .p-column-header-content {
     justify-content: center !important;
     text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
 }
 
 .p-datatable .p-sortable-column .p-column-title,
 .p-datatable .p-sortable-column:hover .p-column-title,
 .p-datatable .p-sortable-column.p-highlight .p-column-title {
     text-align: center !important;
+    flex: 1 !important;
 }
 
 /* Edit Mode Loading Overlay */
