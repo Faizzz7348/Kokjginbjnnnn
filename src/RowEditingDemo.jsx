@@ -58,6 +58,9 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
     const [sortOrder, setSortOrder] = useState(1);
     const [customizeModalVisible, setCustomizeModalVisible] = useState(false);
     const [tempVisibleColumns, setTempVisibleColumns] = useState([]);
+    const [rowCustomizeModalVisible, setRowCustomizeModalVisible] = useState(false);
+    const [tempVisibleRows, setTempVisibleRows] = useState([]);
+    const [tempRowOrder, setTempRowOrder] = useState([]);
     const [isModalMaximized, setIsModalMaximized] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
     const [showInfoModal, setShowInfoModal] = useState(false);
@@ -601,6 +604,35 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
 
     const cancelColumnCustomization = () => {
         setCustomizeModalVisible(false);
+    };
+
+    const openRowCustomizeModal = () => {
+        // Initialize temp visible rows (all visible by default)
+        const allRowIds = modalProducts.map(p => p.id);
+        setTempVisibleRows([...allRowIds]);
+        setTempRowOrder([...modalProducts]);
+        setRowCustomizeModalVisible(true);
+    };
+
+    const applyRowCustomization = () => {
+        // Filter and reorder based on temp settings
+        const reorderedAndFiltered = tempRowOrder.filter(row => tempVisibleRows.includes(row.id));
+        setModalProducts(reorderedAndFiltered);
+        setFilteredModalProducts(reorderedAndFiltered);
+        setCurrentModalChanges(prev => prev + 1);
+        setRowCustomizeModalVisible(false);
+    };
+
+    const cancelRowCustomization = () => {
+        setRowCustomizeModalVisible(false);
+    };
+
+    const toggleRowVisibility = (rowId) => {
+        if (tempVisibleRows.includes(rowId)) {
+            setTempVisibleRows(tempVisibleRows.filter(id => id !== rowId));
+        } else {
+            setTempVisibleRows([...tempVisibleRows, rowId]);
+        }
     };
 
     const toggleModalMaximize = () => {
@@ -1196,6 +1228,18 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                                     setIsFlexMenuOpen(false);
                                 }}
                                 disabled={!isEditMode}
+                                style={{ justifyContent: 'flex-start' }}
+                            />
+                            <div style={{ borderTop: '1px solid var(--surface-border)', margin: '4px 0' }} />
+                            <Button
+                                label="Row Customize"
+                                icon="pi pi-list"
+                                className="p-button-text p-button-plain"
+                                onClick={() => {
+                                    openRowCustomizeModal();
+                                    menuRef.current.hide();
+                                    setIsFlexMenuOpen(false);
+                                }}
                                 style={{ justifyContent: 'flex-start' }}
                             />
                             <div style={{ borderTop: '1px solid var(--surface-border)', margin: '4px 0' }} />
@@ -1796,6 +1840,88 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         </div>
                     </div>
                 </Dialog>
+            </Dialog>
+
+            {/* Row Customize Modal */}
+            <Dialog
+                header="Customize Rows"
+                visible={rowCustomizeModalVisible}
+                style={{ width: '550px' }}
+                modal
+                dismissableMask
+                closable={false}
+                onHide={cancelRowCustomization}
+                footer={
+                    <div>
+                        <Button label="Cancel" icon="pi pi-times" onClick={cancelRowCustomization} className="p-button-text" />
+                        <Button 
+                            label="Apply" 
+                            icon="pi pi-check" 
+                            onClick={applyRowCustomization} 
+                            autoFocus 
+                        />
+                    </div>
+                }
+            >
+                <div style={{ padding: '1rem 0' }}>
+                    <p style={{ marginBottom: '1.5rem', color: 'var(--text-color-secondary)' }}>
+                        Show/hide and reorder rows. Hidden rows can be restored anytime.
+                    </p>
+                    <div className="column-customize-list">
+                        {tempRowOrder.map((row, index) => {
+                            const isVisible = tempVisibleRows.includes(row.id);
+                            
+                            return (
+                                <div
+                                    key={row.id}
+                                    className="column-item-with-controls"
+                                >
+                                    <div 
+                                        className="column-item-clickable"
+                                        onClick={() => toggleRowVisibility(row.id)}
+                                    >
+                                        <div className="column-item-content">
+                                            <i className={`pi ${isVisible ? 'pi-eye' : 'pi-eye-slash'}`}
+                                               style={{ fontSize: '1.25rem' }}></i>
+                                            <span className="column-label">
+                                                {row.code} - {row.location}
+                                            </span>
+                                        </div>
+                                        <div className={`column-toggle ${isVisible ? 'active' : ''}`}>
+                                            <div className="column-toggle-thumb"></div>
+                                        </div>
+                                    </div>
+                                    <div className="column-order-controls">
+                                        <Button
+                                            icon="pi pi-chevron-up"
+                                            className="p-button-text p-button-sm"
+                                            disabled={index === 0}
+                                            onClick={() => {
+                                                const newOrder = [...tempRowOrder];
+                                                [newOrder[index - 1], newOrder[index]] = [newOrder[index], newOrder[index - 1]];
+                                                setTempRowOrder(newOrder);
+                                            }}
+                                            tooltip="Move Up"
+                                            tooltipOptions={{ position: 'left' }}
+                                        />
+                                        <Button
+                                            icon="pi pi-chevron-down"
+                                            className="p-button-text p-button-sm"
+                                            disabled={index === tempRowOrder.length - 1}
+                                            onClick={() => {
+                                                const newOrder = [...tempRowOrder];
+                                                [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+                                                setTempRowOrder(newOrder);
+                                            }}
+                                            tooltip="Move Down"
+                                            tooltipOptions={{ position: 'left' }}
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </Dialog>
 
             {/* Info Modal with Card and Map - Huijack Style */}
