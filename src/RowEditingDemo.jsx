@@ -1741,17 +1741,19 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                     rowClassName={modalRowClassName}
                 >
                     <Column
+                        key="no-column-fixed"
                         header="No"
                         body={(data, options) => options.rowIndex + 1}
                         style={{ width: '5%' }}
                         headerStyle={{ textAlign: 'center' }}
                         bodyStyle={{ textAlign: 'center' }}
+                        frozen
                     />
                     {allColumns
                         .filter(col => visibleColumns.includes(col.field))
                         .map((col) => (
                             <Column
-                                key={col.field}
+                                key={`dynamic-${col.field}`}
                                 field={col.field}
                                 header={col.header}
                                 editor={isEditMode ? getColumnEditor(col.field) : null}
@@ -1771,20 +1773,26 @@ export default function RowEditingDemo({ onAddRowRegister, isEditMode, onSaveReg
                         ))
                     }
                     <Column
+                        key="action-column-fixed"
                         header="Action"
                         body={modalActionBodyTemplate}
                         exportable={false}
                         style={{ width: '10%', minWidth: '8rem' }}
                         headerStyle={{ textAlign: 'center' }}
                         bodyStyle={{ textAlign: 'center' }}
+                        frozen
+                        alignFrozen="right"
                     />
                     {isEditMode && (
                         <Column
+                            key="editable-column-fixed"
                             header="Editable"
                             body={modalRowEditorTemplate}
                             exportable={false}
                             headerStyle={{ width: '10%', minWidth: '8rem', textAlign: 'center' }}
                             bodyStyle={{ textAlign: 'center' }}
+                            frozen
+                            alignFrozen="right"
                         />
                     )}
                 </DataTable>

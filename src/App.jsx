@@ -244,7 +244,7 @@ function App() {
                     </OverlayPanel>
                 </div>
             </nav>
-            <div className="App" style={{ paddingTop: '7rem', paddingLeft: '2rem', paddingRight: '2rem', paddingBottom: '2rem' }}>
+            <div className="App" style={{ paddingTop: '5.5rem', paddingLeft: '1rem', paddingRight: '1rem', paddingBottom: '1rem' }}>
             
             <RowEditingDemo 
                 onAddRowRegister={setAddRowCallback} 
